@@ -10,7 +10,7 @@ spec:
           - name: elma365
             chart: elma365
             valuesFile: values-elma365.yaml
-            versionPath: applications/elma365/chart-version.yaml
+            versionPath: elma365-appsets/apps/elma365/chart-version.yaml
           - name: elma365-dbs
             chart: elma365-dbs
             valuesFile: values-elma365-dbs.yaml
@@ -26,7 +26,7 @@ spec:
         targetRevision: '{{version}}'
         helm:
           valueFiles:
-            - applications/{{name}}/{{valuesFile}}
+            - elma365-appsets/apps/{{name}}/{{valuesFile}}
       destination:
         server: https://kubernetes.default.svc
         namespace: elma365
