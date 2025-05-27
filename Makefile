@@ -16,6 +16,10 @@ bump:
 	@echo "🔄 Обновляем версию elma365 до $(CHART_VERSION)"
 	git checkout main
 	git pull origin main
+	@if git show-ref --quiet refs/heads/update/elma365-$(CHART_VERSION); then \
+		echo "⚠️ Ветка update/elma365-$(CHART_VERSION) уже существует. Удаляю..."; \
+		git branch -D update/elma365-$(CHART_VERSION); \
+	fi
 	@git checkout -b update/elma365-$(CHART_VERSION)
 	@yq e -i '.data.version = "$(CHART_VERSION)"' elma365-appsets/apps/elma365/chart-version.yaml
 	@if git diff --quiet; then echo "✅ Версия уже актуальна."; exit 0; fi
