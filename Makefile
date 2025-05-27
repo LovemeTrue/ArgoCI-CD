@@ -31,6 +31,7 @@ bump:
 		--head update/elma365-$(CHART_VERSION) \
 		--title "elma365: bump to $(CHART_VERSION)" \
 		--body "This PR updates elma365 chart to version \`$(CHART_VERSION)\`."
+		--web
 
 .PHONY: dbs-update
 dbs-update:
@@ -48,3 +49,8 @@ dbs-update:
 		--head $$PR_BRANCH \
 		--title "elma365-dbs: $(DBS_MSG)" \
 		--body "Changes in \`values-elma365-dbs.yaml\`: $(DBS_MSG)"
+		--web
+
+.PHONY: sync-status
+sync-status:
+	argocd app get elma365 --refresh
