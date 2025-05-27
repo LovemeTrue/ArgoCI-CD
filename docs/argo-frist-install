@@ -1,0 +1,10 @@
+Хорошо, у меня получилось.
+Теперь я хочу, чтобы записал мои шаги для коммита в гит
+1. Я установил argo/прописал в конфиге куба nameserver
+2. Создал репозиторий Argo CD согласно bestpraccties
+3. Прокинул порт: kubectl port-forward svc/argocd-server -n argocd 8080:443
+4. Запатчил: kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}'
+5. Открыл браузер на локальной ВМ, с которой буду админить кластер: IPмоейвм:32180 предварительно убедившись, что порты открыты обеих ВМ.
+6. Данные для входа.
+- login: admin
+- password: ONQj3MwxmLfT9prS

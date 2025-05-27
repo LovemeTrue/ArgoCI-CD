@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: elma365-stack
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: elma365
+            chart: elma365
+            valuesFile: values-elma365.yaml
+            versionPath: applications/elma365/chart-version.yaml
+          - name: elma365-dbs
+            chart: elma365-dbs
+            valuesFile: values-elma365-dbs.yaml
+            version: latest
+  template:
+    metadata:
+      name: '{{name}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://charts.elma365.tech
+        chart: '{{chart}}'
+        targetRevision: '{{version}}'
+        helm:
+          valueFiles:
+            - applications/{{name}}/{{valuesFile}}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: elma365
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
+        syncOptions:
+          - CreateNamespace=true

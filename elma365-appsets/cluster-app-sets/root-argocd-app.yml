@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: elma365-root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git
+    targetRevision: HEAD
+    path: cluster-app-sets/
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
