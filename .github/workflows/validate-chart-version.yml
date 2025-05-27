@@ -36,4 +36,4 @@ jobs:
         run: |
           helm template elma365 elma365/elma365 \
             --version ${{ steps.version.outputs.version }} \
-            -f apps/elma365/values.yaml
+            -f ./elma365-appsets/apps/elma365/values.yaml
