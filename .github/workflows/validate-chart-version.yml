@@ -1,7 +1,10 @@
 name: Validate Chart Version
 
 on:
+  workflow_dispatch: # Добавить ручной запуск
   pull_request:
+    types: [opened, reopened, synchronize]
+  push:
     branches: [main]
     paths:
       - 'apps/elma365/chart-version.yaml'
