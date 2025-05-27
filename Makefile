@@ -32,7 +32,9 @@ bump:
 		--title "elma365: bump to $(CHART_VERSION)" \
 		--body "This PR updates elma365 chart to version \`$(CHART_VERSION)\`."
 		--web
-
+	git checkout main
+	git add -A
+	git commit -m "AutoMakeCommit"
 .PHONY: dbs-update
 dbs-update:
 	@echo "🔧 Обновляем elma365-dbs (values)"
@@ -50,7 +52,13 @@ dbs-update:
 		--title "elma365-dbs: $(DBS_MSG)" \
 		--body "Changes in \`values-elma365-dbs.yaml\`: $(DBS_MSG)"
 		--web
+	git checkout main
+	git add -A
+	git commit -m "AutoMakeCommit"
 
 .PHONY: sync-status
 sync-status:
 	argocd app get elma365 --refresh
+	git checkout main
+	git add -A
+	git commit -m "AutoMakeCommit"
