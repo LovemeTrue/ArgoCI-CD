@@ -34,6 +34,7 @@ jobs:
 
       - name: Install chart
         run: |
-          helm --install upgrade elma365 elma365/elma365 \
+          helm upgrade --install elma365 elma365/elma365 \
             --version ${{ steps.version.outputs.version }} \
+            --timeout=30m --wait \
             -f ./elma365-appsets/apps/elma365/values-elma365.yaml
