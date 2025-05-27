@@ -1,8 +1,9 @@
 name: Validate Chart Version
 
 on:
+  workflow_dispatch: # Добавить ручной запуск
   pull_request:
-    branches: [main]
+    types: [opened, reopened, synchronize]
   push:
     branches: [main]
     paths:
