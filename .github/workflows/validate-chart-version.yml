@@ -2,8 +2,7 @@ name: Validate Chart Version
 
 on:
   pull_request:
-    branches:
-      - pr
+    branches: [main]
     paths:
       - 'apps/elma365/chart-version.yaml'
       - 'apps/elma365-dbs/values-elma365-dbs.yaml'
