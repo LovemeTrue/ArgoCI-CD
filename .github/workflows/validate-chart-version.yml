@@ -32,8 +32,8 @@ jobs:
           helm repo update
           helm search repo elma365/elma365 --version ${{ steps.version.outputs.version }}
 
-      - name: Template chart
+      - name: Install chart
         run: |
-          helm template elma365 elma365/elma365 \
+          helm --install upgrade elma365 elma365/elma365 \
             --version ${{ steps.version.outputs.version }} \
             -f ./elma365-appsets/apps/elma365/values-elma365.yaml
