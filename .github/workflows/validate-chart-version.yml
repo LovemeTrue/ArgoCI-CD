@@ -23,7 +23,7 @@ jobs:
       - name: Read chart version
         id: version
         run: |
-          VERSION=$(yq e '.data.version' apps/elma365/chart-version.yaml)
+          VERSION=$(yq e '.data.version' ./elma365-appsets/apps/elma365/chart-version.yaml)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Validate Helm version exists
