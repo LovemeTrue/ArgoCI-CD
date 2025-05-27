@@ -2,8 +2,11 @@ name: Validate Chart Version
 
 on:
   pull_request:
+    branches: [main]
     paths:
-      - 'applications/elma365/chart-version.yaml'
+      - 'apps/elma365/chart-version.yaml'
+      - 'apps/elma365-dbs/values-elma365-dbs.yaml'
+
 
 jobs:
   validate:
@@ -17,7 +20,7 @@ jobs:
       - name: Read chart version
         id: version
         run: |
-          VERSION=$(yq e '.data.version' applications/elma365/chart-version.yaml)
+          VERSION=$(yq e '.data.version' apps/elma365/chart-version.yaml)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Validate Helm version exists
@@ -30,4 +33,4 @@ jobs:
         run: |
           helm template elma365 elma365/elma365 \
             --version ${{ steps.version.outputs.version }} \
-            -f applications/elma365/values.yaml
+            -f apps/elma365/values.yaml
