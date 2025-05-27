@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: elma365-version
 data:
-  version: "2025.4.0"
+  version: "2025.4.1"
