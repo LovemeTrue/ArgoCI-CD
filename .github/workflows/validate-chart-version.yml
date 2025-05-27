@@ -8,8 +8,8 @@ on:
     branches:
       - main
     paths:
-      - 'elma365-appsets/applications/elma365/chart-version.yaml'
-      - 'elma365-appsets/applications/elma365-dbs/values-elma365-dbs.yaml'
+      - 'elma365-appsets/apps/elma365/chart-version.yaml'
+      - 'elma365-appsets/apps/elma365-dbs/values-elma365-dbs.yaml'
 
 jobs:
   validate:
@@ -25,7 +25,7 @@ jobs:
       - name: Read elma365 version
         id: version
         run: |
-          VERSION=$(yq e '.data.version' elma365-appsets/applications/elma365/chart-version.yaml)
+          VERSION=$(yq e '.data.version' elma365-appsets/apps/elma365/chart-version.yaml)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Validate elma365 chart version exists
@@ -40,7 +40,7 @@ jobs:
     needs: validate
     if: github.event_name == 'pull_request'
     steps:
-      - name: Enable auto-merge (via GitHub CLI)
+      - name: Enable auto-merge (via GitHub API)
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -56,6 +56,7 @@ jobs:
               console.log("✅ PR merged successfully.");
             }
 
+
   notify-argocd:
     name: Notify ArgoCD to sync
     runs-on: ubuntu-latest
@@ -70,4 +71,4 @@ jobs:
         run: |
           curl -k -s -X POST \
             -u "$ARGOCD_USERNAME:$ARGOCD_PASSWORD" \
-            "$ARGOCD_SERVER/api/v1/applications/elma365/sync"
+            "$ARGOCD_SERVER/api/v1/apps/elma365/sync"
