@@ -17,9 +17,9 @@ bump:
 	git checkout main
 	git pull origin main
 	@git checkout -b update/elma365-$(CHART_VERSION)
-	@yq e -i '.data.version = "$(CHART_VERSION)"' elma365-appsets/applications/elma365/chart-version.yaml
+	@yq e -i '.data.version = "$(CHART_VERSION)"' elma365-appsets/apps/elma365/chart-version.yaml
 	@if git diff --quiet; then echo "✅ Версия уже актуальна."; exit 0; fi
-	git add elma365-appsets/applications/elma365/chart-version.yaml
+	git add elma365-appsets/apps/elma365/chart-version.yaml
 	git commit -m "🔄 bump elma365 chart to $(CHART_VERSION)"
 	git push -u origin update/elma365-$(CHART_VERSION)
 	gh pr create \
@@ -35,8 +35,8 @@ dbs-update:
 	git pull origin main
 	@PR_BRANCH=update/elma365-dbs-`date +%Y%m%d-%H%M%S` && \
 	git checkout -b $$PR_BRANCH && \
-	if git diff --quiet elma365-appsets/applications/elma365-dbs/values-elma365-dbs.yaml; then echo "⚠️ Нет изменений — отмена."; exit 0; fi && \
-	git add elma365-appsets/applications/elma365-dbs/values-elma365-dbs.yaml && \
+	if git diff --quiet elma365-appsets/apps/elma365-dbs/values-elma365-dbs.yaml; then echo "⚠️ Нет изменений — отмена."; exit 0; fi && \
+	git add elma365-appsets/apps/elma365-dbs/values-elma365-dbs.yaml && \
 	git commit -m "🔧 elma365-dbs: $(DBS_MSG)" && \
 	git push -u origin $$PR_BRANCH && \
 	gh pr create \
