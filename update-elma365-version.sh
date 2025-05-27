@@ -8,7 +8,7 @@ fi
 
 VERSION="$1"
 BRANCH="pr"
-FILE="elma365-appsets/applications/elma365/chart-version.yaml"
+FILE="elma365-appsets/apps/elma365/chart-version.yaml"
 
 # Обновляем версию в YAML-файле
 echo "🔧 Обновляю версию чарта на $VERSION..."
