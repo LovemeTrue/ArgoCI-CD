@@ -1,0 +1,204 @@
+{{- if eq .Values.global.solution "onPremise" }}
+{{- if or (eq .Values.global.edition "standard") (eq .Values.global.edition "enterprise") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bootstrap-company
+  {{- if not .Values.global.chart }}
+  namespace: elma365-system
+  {{- end }}
+  labels:
+    tier: elma365
+    action: bootstrap
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "15"
+    helm.sh/hook-delete-policy: hook-failed
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  template:
+    metadata:
+      labels:
+        sidecar.istio.io/inject: "false"
+      annotations:
+        linkerd.io/inject: disabled
+    spec:
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.jobGlobal.podSecurityContext" . | nindent 8 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}
+      imagePullSecrets:
+        {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+      containers:
+        - name: bootstrap
+          image: "{{ .Values.global.image.repository }}/docker/toolkit/curl:8.2.1"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          args:
+            - "/bin/sh"
+            - "-ec"
+            - 'sleep 60 && curl --fail -m {{ default 1800 .Values.global.activeDeadlineSeconds }} -X POST -H "Content-Type: application/json" --data @/etc/config/company.json http://vahter.{{ default "default" .Release.Namespace }}.svc:3000/internal/bootstrap'
+        {{- if .Values.global.helmLibrary }}
+          securityContext:
+            {{- include "helm-library.jobGlobal.securityContext" . | nindent 12 }}
+          {{- include "helm-library.jobGlobal.resources" . | indent 10 }}
+        {{- end }}
+          volumeMounts:
+            - name: company-json
+              mountPath: /etc/config
+      volumes:
+        - name: company-json
+          secret:
+            secretName: elma365-company
+      restartPolicy: OnFailure
+  backoffLimit: 10
+  activeDeadlineSeconds: {{ default 1800 .Values.global.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: 120
+
+{{- else if eq .Values.global.edition "hub" }}
+
+{{- range $index, $job := .Values.global.hub }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bootstrap-{{ (add $index 1) }}-{{ $job.name }}
+  labels:
+    tier: elma365
+    action: bootstrap
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "15"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  template:
+    metadata:
+      labels:
+        app: hub
+        tier: elma365
+        sidecar.istio.io/inject: "false"
+      annotations:
+        linkerd.io/inject: disabled
+    spec:
+      imagePullSecrets:
+        {{- range $.Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+      serviceAccountName: internal-kubectl-hub
+      initContainers:
+        {{- if gt $index 0 }}
+        - name: wait-previous
+          image: "{{ $.Values.global.image.repository }}/docker/toolkit/sh-curl-kubectl:alpine3.20"
+          imagePullPolicy: {{ $.Values.global.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              TENANT="Tenant-{{ $index }}: {{ (index $.Values.global.hub (sub $index 1)).name }}";
+              while [[ "$(kubectl -n {{ $.Release.Namespace }} get configmap {{ $.Release.Name }}-tenants -o jsonpath='{.data.{{ (index $.Values.global.hub (sub $index 1)).name }} }' 2>/dev/null)" == "processing" ]];
+              do
+                echo "Waiting for ${TENANT} to complete..."; sleep 5;
+              done;
+              echo "${TENANT} is completed. Next...";
+          {{- end }}
+      containers:
+        - name: bootstrap
+          image: "{{ $.Values.global.image.repository }}/docker/toolkit/sh-curl-kubectl:alpine3.20"
+          imagePullPolicy: {{ $.Values.global.image.pullPolicy }}
+          args:
+            - sh
+            - -c
+            - |
+              CM="{{ $.Release.Name }}-tenants"
+              TENANT="Tenant-{{ (add $index 1) }}: {{ $job.name }}.{{ $.Values.global.host }}";
+              echo "Processing ${TENANT} for {{ $job.email }}";
+              kubectl patch configmap ${CM} -p '{"data": {"{{ $job.name }}": "processing"} }' 2>/dev/null;
+              sleep 5;
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" --fail -X POST -m {{ default 1800 $.Values.global.activeDeadlineSeconds }} \
+                  -H "Content-Type: application/json" http://vahter.{{ default "elma365" $.Release.Namespace }}.svc:3000/internal/bootstrap \
+                  --data-raw '{"company":"{{ $job.name }}", "email": "{{ $job.email }}","password":"{{ $job.password }}", "description":"{{ $job.description }}", "locale":"{{ $job.locale }}"}');
+              echo "Code returned: $CODE";
+              if [ "$CODE" -ge 200 ] && [ "$CODE" -lt 300 ]; then
+                  kubectl patch configmap ${CM} -p '{"data": {"{{ $job.name }}": "processed"} }' 2>/dev/null;
+                  echo "${TENANT} code $CODE: processed";
+              elif [ "$CODE" -ge 500 ]; then
+                  kubectl patch configmap ${CM} -p '{"data": {"{{ $job.name }}": "error"} }' 2>/dev/null;
+                  echo "${TENANT} returned $CODE: error, try to increase PostgreSQL max_connections";
+              else
+                  kubectl patch configmap ${CM} -p '{"data": {"{{ $job.name }}": "failed"} }' 2>/dev/null;
+                  echo "${TENANT} returned $CODE: failed, invalid name or email";
+              fi;
+              sleep 5;
+      restartPolicy: OnFailure
+  backoffLimit: 3
+  activeDeadlineSeconds: {{ default 1800 $.Values.global.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: 1800
+{{- end }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: internal-kubectl-hub
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: hub
+    tier: elma365
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-30"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: hub-cm-manager
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: hub
+    tier: elma365
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-30"
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get","list","watch","create","update","patch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get","list","watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: hub-cm-manager-bind
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: hub
+    tier: elma365
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-30"
+subjects:
+  - kind: ServiceAccount
+    name: internal-kubectl-hub
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: hub-cm-manager
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-tenants
+  labels:
+    app: hub
+    tier: elma365
+data: {}
+
+{{- end }}
+{{- end }}

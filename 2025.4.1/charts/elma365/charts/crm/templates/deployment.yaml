@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "crm.name" . }}
+  labels:
+    {{- include "crm.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.global.annotations }}
+      {{- toYaml . | nindent 4 }}
+      {{- end }}
+      {{- with .Values.annotations }}
+      {{- toYaml . | nindent 4 }}
+      {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "crm.selectorLabels" . | nindent 6 }}
+  strategy: {{- toYaml .Values.global.updateStrategy | nindent 4 }}
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.global.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "crm.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      imagePullSecrets:
+        {{- if .Values.image.pullSecret }}
+        {{- range .Values.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- else }}
+        {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository | default .Values.global.image.repository }}/elma365/crm/service:{{ .Values.images.service }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.global.grpc_port }}
+            - name: http
+              containerPort: {{ .Values.global.http_port }}
+          env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: ELMA365_HOST
+              value: {{ .Values.global.host | quote}}
+            - name: ELMA365_CRM_SYNC_SUBSCRIBERS_MIN_SIZE
+              value: {{ default 20 .Values.appconfig.syncSubscribersMinSize | quote }}
+            - name: ELMA365_CRM_DELETE_EXPIRED_ACTIVITIES_THRESHOLD
+              value: {{ default "5m" .Values.appconfig.deleteExpiredActivitiesThreshold | quote }}
+            - name: ELMA365_CRM_WARM_UP_SETTINGS_CACHE_DURATION
+              value: {{ default "5m" .Values.appconfig.warmUpSettingsCacheDuration | quote }}
+            - name: ELMA365_SEND_MARKETING_CAMPAIGN_IN_ADVANCE_DURATION
+              value: {{ default "1h" .Values.appconfig.sendMarketingCampaignInAdvanceDuration | quote }}
+            - name: ELMA365_GET_MARKETING_CAMPAIGN_STATS_CACHE_DURATION
+              value: {{ default "5m" .Values.appconfig.getMarketingCampaignStatsCacheDuration | quote }}
+          {{- if .Values.global.helmLibrary }}
+            {{- include "helm-library.deployment.env" . | indent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: elma365-env-config
+                optional: true
+            - secretRef:
+                name: elma365-db-connections
+                optional: true
+      {{- if .Values.global.helmLibrary }}
+          securityContext:
+            {{- include "helm-library.deployment.securityContext" . | nindent 12 }}
+          {{- include "helm-library.deployment.probes" . | indent 10 }}
+          {{- include "helm-library.deployment.resources" . | indent 10 }}
+          {{- include "helm-library.deployment.volumeMounts" . | indent 10 }}
+          {{- include "helm-library.deployment.lifecycle" . | indent 10 }}
+        {{- include "helm-library.deployment.volumes" . | indent 6 }}
+        {{- include "helm-library.deployment.terminationgraceperiod" . | indent 6 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}
