@@ -100,8 +100,9 @@ APPS_DIR := apps
 gen-apps:
 	@echo "📁 Генерирую приложения ArgoCD для версии $(VERSION)..."
 
-	@APP_FILE=$(APPS_DIR)/elma365-$(VERSION).yaml && \
-	DBS_FILE=$(APPS_DIR)/elma365-dbs.yaml && \
+	@bash -c '\
+	APP_FILE="$(APPS_DIR)/elma365-$(VERSION).yaml"; \
+	DBS_FILE="$(APPS_DIR)/elma365-dbs-$(VERSION).yaml"; \
 
 	echo "📄 Создаю $$APP_FILE" && \
 	cat > $$APP_FILE <<EOF
@@ -157,8 +158,8 @@ gen-apps:
 		prune: true
 		selfHeal: true
 	EOF
-
-	@git add $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs-$(VERSION).yaml
+		'
+	@git add $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs.yaml
 	@git commit -m "🔧 Добавлены приложения elma365 и elma365-dbs для версии $(VERSION)"
 	@git push
 
