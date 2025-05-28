@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-1"
+  labels:
+    {{- include "notifier.labels" . | nindent 4 }}
+  name: "notifier"
+data:
+    # Rabbitmq
+    RABBITMQ_USER: {{ template "notifier.rmquser" . }}
+    RABBITMQ_VH_NAME: {{ default .Release.Namespace .Values.rabbitmq.vhName }}

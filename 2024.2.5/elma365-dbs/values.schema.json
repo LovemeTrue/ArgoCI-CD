@@ -1,0 +1,397 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "elma365-dbs": {
+            "type": "object",
+            "properties": {
+                "elasticsearch": {
+                    "type": "object",
+                    "properties": {
+                        "minimumMasterNodes": {
+                            "type": "integer"
+                        },
+                        "replicas": {
+                            "type": "integer"
+                        },
+                        "volumeClaimTemplate": {
+                            "type": "object",
+                            "properties": {
+                                "accessModes": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "resources": {
+                                    "type": "object",
+                                    "properties": {
+                                        "requests": {
+                                            "type": "object",
+                                            "properties": {
+                                                "storage": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "global": {
+                    "type": "object",
+                    "properties": {
+                        "elasticsearch": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        },
+                        "minio": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        },
+                        "mongodb": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        },
+                        "postgresql": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        },
+                        "rabbitmq": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        },
+                        "redis": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        },
+                        "valkey": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "minio": {
+                    "type": "object",
+                    "properties": {
+                        "apiIngress": {
+                            "type": "object",
+                            "properties": {
+                                "extraHosts": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "path": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "ingressClassName": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "auth": {
+                            "type": "object",
+                            "properties": {
+                                "rootPassword": {
+                                    "type": "string"
+                                },
+                                "rootUser": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "defaultBuckets": {
+                            "type": "string"
+                        },
+                        "gateway": {
+                            "type": "object",
+                            "properties": {
+                                "auth": {
+                                    "type": "object",
+                                    "properties": {
+                                        "s3": {
+                                            "type": "object",
+                                            "properties": {
+                                                "accessKey": {
+                                                    "type": "string"
+                                                },
+                                                "secretKey": {
+                                                    "type": "string"
+                                                },
+                                                "serviceEndpoint": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        },
+                        "persistence": {
+                            "type": "object",
+                            "properties": {
+                                "size": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "volumePermissions": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "mongodb": {
+                    "type": "object",
+                    "properties": {
+                        "auth": {
+                            "type": "object",
+                            "properties": {
+                                "database": {
+                                    "type": "string"
+                                },
+                                "password": {
+                                    "type": "string"
+                                },
+                                "replicaSetKey": {
+                                    "type": "string"
+                                },
+                                "rootPassword": {
+                                    "type": "string"
+                                },
+                                "username": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "persistence": {
+                            "type": "object",
+                            "properties": {
+                                "size": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "volumePermissions": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "postgresql": {
+                    "type": "object",
+                    "properties": {
+                        "auth": {
+                            "type": "object",
+                            "properties": {
+                                "database": {
+                                    "type": "string"
+                                },
+                                "postgresPassword": {
+                                    "type": "string"
+                                },
+                                "replicationPassword": {
+                                    "type": "string"
+                                },
+                                "replicationUsername": {
+                                    "type": "string"
+                                },
+                                "username": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "primary": {
+                            "type": "object",
+                            "properties": {
+                                "extendedConfiguration": {
+                                    "type": "string"
+                                },
+                                "persistence": {
+                                    "type": "object",
+                                    "properties": {
+                                        "size": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "volumePermissions": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "rabbitmq": {
+                    "type": "object",
+                    "properties": {
+                        "auth": {
+                            "type": "object",
+                            "properties": {
+                                "password": {
+                                    "type": "string"
+                                },
+                                "username": {
+                                    "type": "string"
+                                },
+                                "vhost": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "persistence": {
+                            "type": "object",
+                            "properties": {
+                                "size": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "volumePermissions": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "redis": {
+                    "type": "object",
+                    "properties": {
+                        "commonConfiguration": {
+                            "type": "string"
+                        },
+                        "master": {
+                            "type": "object",
+                            "properties": {
+                                "persistence": {
+                                    "type": "object",
+                                    "properties": {
+                                        "size": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "replica": {
+                            "type": "object",
+                            "properties": {
+                                "persistence": {
+                                    "type": "object",
+                                    "properties": {
+                                        "size": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "volumePermissions": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "valkey": {
+                    "type": "object",
+                    "properties": {
+                        "commonConfiguration": {
+                            "type": "string"
+                        },
+                        "primary": {
+                            "type": "object",
+                            "properties": {
+                                "persistence": {
+                                    "type": "object",
+                                    "properties": {
+                                        "size": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "replica": {
+                            "type": "object",
+                            "properties": {
+                                "persistence": {
+                                    "type": "object",
+                                    "properties": {
+                                        "size": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "volumePermissions": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

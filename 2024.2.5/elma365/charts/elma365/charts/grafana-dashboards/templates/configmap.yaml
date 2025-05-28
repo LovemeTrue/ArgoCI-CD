@@ -1,0 +1,25 @@
+{{- if and (eq (toString .Values.global.monitoring.enabled) "true") (eq (toString .Values.global.monitoring.dashboard.enabled) "true") }}
+{{ $root := . }}
+{{ range $path, $_ := .Files.Glob "json/**.json"  }}
+{{- $fullpath := $path }}      # json/folder1/dashboard1.json
+{{- $directory := dir $path }} # json/folder1
+{{- $dir := index (regexSplit "json" (dir $path) -1) 1 }} # /folder1
+{{- $filename := base $path }} # dashboard1.json
+{{- $dashboard := $filename | replace ".json" "" }} # dashboard1
+{{- with $root }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  annotations:
+    grafana-dashboard-folder: /tmp/dashboards{{ default .Values.dashboardsFolder $dir }}{{ printf "-%s" .Release.Namespace }}
+  name: grafana-dashboard-{{ $filename | replace ".json" "" }}
+  labels:
+    {{- include "grafana-dashboards.labels" . | nindent 4 }}
+{{ toYaml $.Values.labels | indent 4 }}
+data:
+  {{ $filename }}: |-
+{{ .Files.Get $path | indent 4 }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

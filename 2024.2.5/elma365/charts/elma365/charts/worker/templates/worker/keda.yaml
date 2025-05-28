@@ -1,0 +1,3 @@
+{{- if .Values.global.helmLibrary }}
+{{- include "helm-library.keda-worker" . }}
+{{- end }}

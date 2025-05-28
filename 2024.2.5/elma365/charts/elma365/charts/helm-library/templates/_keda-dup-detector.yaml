@@ -1,0 +1,53 @@
+{{- define "helm-library.keda-dup-detector" }}
+{{- $name := include "helm-library.name" . }}
+{{- if or ( eq .Values.global.edition "enterprise" ) ( not ( eq .Values.global.solution "onPremise" ) ) }}
+{{- if or .Values.global.autoscaling.enabled .Values.autoscaling.enabled }}
+{{- if eq .Values.global.autoscaling.type "keda" }}
+{{- if ($.Capabilities.APIVersions.Has "keda.sh/v1alpha1/ScaledObject") }}
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: {{ $name }}-trigger-auth-amqp-conn
+spec:
+  secretTargetRef:
+    - parameter: host
+      name: elma365-db-connections
+      key: AMQP_URL
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ $name }}
+  labels:
+  {{- include "helm-library.labels" . | nindent 4 }}
+spec:
+  minReplicaCount: {{ .Values.autoscaling.minReplicas | default .Values.global.autoscaling.minReplicas }}
+  maxReplicaCount: {{ .Values.autoscaling.maxReplicas | default .Values.global.autoscaling.maxReplicas }}
+  scaleTargetRef:
+    name: {{ $name }}
+  triggers:
+    {{- if or .Values.global.autoscaling.targetMemoryUtilizationPercentage .Values.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: {{ .Values.autoscaling.targetMemoryUtilizationPercentage | default .Values.global.autoscaling.targetMemoryUtilizationPercentage | quote }}
+    {{- end }}
+    {{- if or .Values.global.autoscaling.targetCPUUtilizationPercentage .Values.autoscaling.targetCPUUtilizationPercentage }}
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: {{ .Values.autoscaling.targetCPUUtilizationPercentage | default .Values.global.autoscaling.targetCPUUtilizationPercentage | quote }}
+    {{- end }}
+    - type: rabbitmq
+      metadata:
+        protocol: auto
+        mode: QueueLength
+        value: {{ .Values.autoscaling.rabbitmqQueueLength | default .Values.global.autoscaling.rabbitmqQueueLength | quote }}
+        queueName: dup_detector.observable_collections_events
+      authenticationRef:
+        name: {{ $name }}-trigger-auth-amqp-conn
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,145 @@
+{{- define "helm-library.deployment.volumeMounts" }}
+{{- if eq .Values.global.solution "onPremise" }}
+{{- if .Values.global.ingress }}
+{{- if .Values.global.ingress.onpremiseTls }}
+{{- if .Values.global.ingress.onpremiseTls.enabledCA }}
+volumeMounts:
+  - name: elma365-onpremise-ca
+    subPath: elma365-onpremise-ca.pem
+    mountPath: /etc/ssl/certs/elma365-onpremise-ca.pem
+    readOnly: false
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "helm-library.deployment.volumes" }}
+{{- if eq .Values.global.solution "onPremise" }}
+{{- if .Values.global.ingress }}
+{{- if .Values.global.ingress.onpremiseTls }}
+{{- if .Values.global.ingress.onpremiseTls.enabledCA }}
+volumes:
+  - name: elma365-onpremise-ca
+    configMap:
+      name: {{ .Values.global.ingress.onpremiseTls.configCA }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+
+{{- define "helm-library.deployment.volumeMounts-billing" }}
+{{- if eq .Values.global.solution "onPremise" }}
+volumeMounts:
+{{- if not .Values.global.licenseV2 }}
+  - name: machine-id
+    mountPath: /etc/machine-id
+    readOnly: true
+{{- end }}
+{{- if .Values.global.ingress }}
+{{- if .Values.global.ingress.onpremiseTls }}
+{{- if .Values.global.ingress.onpremiseTls.enabledCA }}
+  - name: elma365-onpremise-ca
+    subPath: elma365-onpremise-ca.pem
+    mountPath: /etc/ssl/certs/elma365-onpremise-ca.pem
+    readOnly: false
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "helm-library.deployment.volumes-billing" }}
+{{- if eq .Values.global.solution "onPremise" }}
+volumes:
+{{- if not .Values.global.licenseV2 }}
+  - name: machine-id
+    hostPath:
+      path: {{ .Values.global.machineId }}
+      type: File
+{{- end }}
+{{- if .Values.global.ingress }}
+{{- if .Values.global.ingress.onpremiseTls }}
+{{- if .Values.global.ingress.onpremiseTls.enabledCA }}
+  - name: elma365-onpremise-ca
+    configMap:
+      name: {{ .Values.global.ingress.onpremiseTls.configCA }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+
+{{- define "helm-library.deployment.volumeMounts-dumper" }}
+volumeMounts:
+  - name: dumps
+    mountPath: /tmp/dumps
+{{- if eq .Values.global.solution "onPremise" }}
+{{- if .Values.global.ingress }}
+{{- if .Values.global.ingress.onpremiseTls }}
+{{- if .Values.global.ingress.onpremiseTls.enabledCA }}
+  - name: elma365-onpremise-ca
+    subPath: elma365-onpremise-ca.pem
+    mountPath: /etc/ssl/certs/elma365-onpremise-ca.pem
+    readOnly: false
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "helm-library.deployment.volumes-dumper" }}
+volumes:
+  - name: dumps
+    emptyDir: {}
+{{- if eq .Values.global.solution "onPremise" }}
+{{- if .Values.global.ingress }}
+{{- if .Values.global.ingress.onpremiseTls }}
+{{- if .Values.global.ingress.onpremiseTls.enabledCA }}
+  - name: elma365-onpremise-ca
+    configMap:
+      name: {{ .Values.global.ingress.onpremiseTls.configCA }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+
+{{- define "helm-library.deployment.volumeMounts-dottemplater" }}
+volumeMounts:
+  - name: barcode
+    mountPath: /tmp/barcode 
+{{- if eq .Values.global.solution "onPremise" }}
+{{- if .Values.global.ingress }}
+{{- if .Values.global.ingress.onpremiseTls }}
+{{- if .Values.global.ingress.onpremiseTls.enabledCA }}
+  - name: elma365-onpremise-ca
+    subPath: elma365-onpremise-ca.pem
+    mountPath: /etc/ssl/certs/elma365-onpremise-ca.pem
+    readOnly: false
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "helm-library.deployment.volumes-dottemplater" }}
+volumes:
+  - name: barcode
+    emptyDir: {}
+{{- if eq .Values.global.solution "onPremise" }}
+{{- if .Values.global.ingress }}
+{{- if .Values.global.ingress.onpremiseTls }}
+{{- if .Values.global.ingress.onpremiseTls.enabledCA }}
+  - name: elma365-onpremise-ca
+    configMap:
+      name: {{ .Values.global.ingress.onpremiseTls.configCA }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

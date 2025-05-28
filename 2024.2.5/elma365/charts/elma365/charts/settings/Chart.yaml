@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: Elma365 Settings - сервис профилей пользователей и компании
+name: settings
+type: application
+version: 0.1.0

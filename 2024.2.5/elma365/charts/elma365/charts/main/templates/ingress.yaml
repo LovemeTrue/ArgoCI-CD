@@ -1,0 +1,104 @@
+{{- $serviceName := include "main.name" . -}}
+{{- $servicePort := .Values.global.http_port -}}
+{{- $host := .Values.global.host -}}
+{{- if ne (toString .Values.global.openshift) "true" }}
+{{- if semverCompare ">=1.19-0" (include "kubeVersion" .) -}}
+apiVersion: networking.k8s.io/v1
+{{- else -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ template "main.name" . }}
+  labels:
+    {{- include "main.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.global.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    nginx.ingress.kubernetes.io/rewrite-target: /external/$2
+    {{- if .Values.ingress.gzip.enabled }}
+    {{- if .Values.global.timeout }}
+    nginx.ingress.kubernetes.io/proxy_send_timeout: {{ .Values.global.timeout | quote }}
+    nginx.ingress.kubernetes.io/proxy_read_timeout: {{ .Values.global.timeout | quote }}
+    nginx.ingress.kubernetes.io/proxy_next_upstream_tries: "3"
+    {{- end }}
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      gzip on;
+      gzip_vary on;
+      gzip_proxied any;
+      gzip_comp_level {{ .Values.ingress.gzip.compLevel }};
+      gzip_min_length {{ .Values.ingress.gzip.minLength }};
+      gzip_buffers 16 128k;
+      gzip_types
+        text/plain
+        application/json;
+      {{- if eq .Values.global.solution "onPremise" }}
+      {{- if .Values.global.ingress.indexIsnull.enabled }}
+      if ($uri ~* /api/apps/(.*)/items) {set $uri_true rewrite;}
+      if ($args ~* (.*)(active=true)(.*|$)) {set $args_true "${uri_true}_true";}
+      if ($args_true = rewrite_true) {set $args $1active=false$3; rewrite ^.*$ $1 redirect;}
+      {{- end }}
+      {{- end }}
+    {{- end }}
+spec:
+  {{- if and .Values.global.ingress.ingressClassName (include "main.supportsIngressClassname" .) }}
+  ingressClassName: {{ .Values.global.ingress.ingressClassName | quote }}
+  {{- end }}
+  rules:
+  {{- if eq .Values.global.solution "onPremise" }}
+  {{- if or .Values.global.ingress.onpremiseTls.enabled .Values.global.ingress.hostEnabled }}
+    - host: {{ .Values.global.host }}
+      http:
+  {{- else }}
+    - http:
+  {{- end }}
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+  {{- if .Values.global.ingress.onpremiseTls.enabled }}
+  tls:
+    - hosts:
+      - {{ .Values.global.host }}
+      secretName: {{ .Values.global.ingress.onpremiseTls.secret }}
+  {{- end }}
+  {{- else -}}
+    {{- range $company := .Values.global.companies }}
+    - host: '{{ $company }}.{{ $host }}'
+      http:
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+    {{- end -}}
+  {{- end -}}
+{{- $hosts := list }}
+{{- range $company := .Values.global.companies }}
+{{- $host := printf "%s.%s" $company $host }}
+{{- $hosts = append $hosts $host }}
+{{- end }}
+{{- include "ingressTLS" (list . $hosts) | nindent 2 }}
+{{- end }}

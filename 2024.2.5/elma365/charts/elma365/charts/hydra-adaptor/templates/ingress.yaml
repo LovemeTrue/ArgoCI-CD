@@ -1,0 +1,150 @@
+{{- $serviceName := include "hydra-adaptor.name" . -}}
+{{- $servicePort := .Values.global.http_port -}}
+{{- $servicePath := .Values.ingress.path -}}
+{{- $companiesLength := len .Values.global.companies }}
+{{- $host := .Values.global.host -}}
+{{- if ne (toString .Values.global.openshift) "true" }}
+{{- if semverCompare ">=1.19-0" (include "kubeVersion" .) -}}
+apiVersion: networking.k8s.io/v1
+{{- else -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ include "hydra-adaptor.name" . }}
+  labels:
+    app: {{ include "hydra-adaptor.name" . }}
+    tier: elma365
+    chart: {{ include "hydra-adaptor.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+    {{- with .Values.global.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  {{- if and .Values.global.ingress.ingressClassName (include "hydra-adaptor.supportsIngressClassname" .) }}
+  ingressClassName: {{ .Values.global.ingress.ingressClassName | quote }}
+  {{- end }}
+  rules:
+  {{- if eq .Values.global.solution "onPremise" }}
+  {{- if or .Values.global.ingress.onpremiseTls.enabled .Values.global.ingress.hostEnabled }}
+    - host: {{ .Values.global.host }}
+      http:
+  {{- else }}
+    - http:
+  {{- end }}
+        paths:
+          - path: {{ $servicePath }}(.*)
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" .) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+  {{- if .Values.global.ingress.onpremiseTls.enabled }}
+  tls:
+    - hosts:
+      - {{ .Values.global.host }}
+      secretName: {{ .Values.global.ingress.onpremiseTls.secret }}
+  {{- end }}
+  {{- else -}}
+    {{- range $additionalHost := .Values.ingress.additionalHosts }}
+    - host: '{{ $additionalHost }}'
+      http:
+        paths:
+          - path: {{ $servicePath }}(.*)
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+    - host: '*.{{ $additionalHost }}'
+      http:
+        paths:
+          - path: {{ $servicePath }}(.*)
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+    {{- end -}}
+    {{ if eq $companiesLength 0 }}
+    - host: '{{ $host }}'
+      http:
+        paths:
+          - path: {{ $servicePath }}(.*)
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+    - host: '*.{{ $host }}'
+      http:
+        paths:
+          - path: {{ $servicePath }}(.*)
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+    {{ else }}
+    {{- range $company := .Values.global.companies }}
+    - host: '{{ $company }}.{{ $host }}'
+      http:
+        paths:
+          - path: {{ $servicePath }}(.*)
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+    {{- end -}}
+    {{ end }}
+  {{- end -}}
+{{- $hosts := list }}
+{{- range $company := .Values.global.companies }}
+{{- $host := printf "%s.%s" $company $host }}
+{{- $hosts = append $hosts $host }}
+{{- end }}
+{{- include "ingressTLS" (list . $hosts) | nindent 2 }}
+{{- end }}

@@ -1,0 +1,55 @@
+{{- $serviceName := include "deploy.name" . -}}
+{{- if semverCompare ">=1.21-0" (include "kubeVersion" .) -}}
+apiVersion: batch/v1
+{{- else -}}
+apiVersion: batch/v1beta1
+{{- end }}
+kind: CronJob
+metadata:
+  name: {{ $serviceName }}-tasks-recover
+  labels:
+    app: {{ $serviceName }}
+    tier: elma365-job
+    chart: {{ template "deploy.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 0
+  startingDeadlineSeconds: {{ default 300 .Values.global.cronStartingDeadlineSeconds }}
+  concurrencyPolicy: Replace
+  schedule: {{ .Values.appconfig.task.recoverSchedule | quote }}
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: {{ default 300 .Values.global.cronTtlSecondsAfterFinished }}
+      activeDeadlineSeconds: {{ default 120 .Values.global.cronActiveDeadlineSeconds }}
+      template:
+        metadata:
+          labels:
+            job: tasks-recover-deploy
+            tier: elma365
+            sidecar.istio.io/inject: "false"
+          annotations:
+            linkerd.io/inject: disabled
+        spec:
+          {{- if .Values.global.helmLibrary }}
+          securityContext:
+            {{- include "helm-library.job.podSecurityContext" . | nindent 12 }}
+          {{- include "helm-library.deployment.scheduling" . | indent 10 }}
+          {{- end }}
+          imagePullSecrets:
+          {{- range .Values.global.image.pullSecret }}
+            - name: {{ . }}
+          {{- end }}
+          containers:
+            - name: tasks-recover-executor
+              image: "{{ .Values.global.image.repository }}/docker/toolkit/curl:8.2.1"
+              imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+              args:
+                - /bin/sh
+                - -ec
+                - 'curl --fail -m {{ default 30 .Values.global.cronActiveDeadlineSeconds }} -X POST http://{{ template "deploy.name" . }}:{{ .Values.global.containerPorts.deploy.http_port }}/migration/tasks/recover'
+            {{- if .Values.global.helmLibrary }}
+              {{- include "helm-library.cronjobs.resources" . | indent 14 }}
+            {{- end }}
+          restartPolicy: OnFailure
