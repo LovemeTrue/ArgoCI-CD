@@ -63,34 +63,100 @@ VERSION ?= 2025.4.1
 .PHONY: release
 release:
 	@echo "🚀 Выполняю выпуск версии $(VERSION)"
-
-	# === Скачиваем чарт elma365 ===
-	@echo "📦 Скачиваем чарт elma365..."
 	helm repo add elma365 https://charts.elma365.tech
 	helm repo update
+
+	@echo "📦 Скачиваем чарт elma365..."
 	helm pull elma365/elma365 --version $(VERSION) --untar
-	mv elma365 $(VERSION)/elma365
-
-	# === Копируем актуальные values-elma365.yaml ===
-	@echo "📥 Копируем values-elma365.yaml из elma365-appsets/apps/elma365/"
 	mkdir -p $(VERSION)/elma365
-	cp elma365-appsets/apps/elma365/values-elma365.yaml $(VERSION)/elma365/
+	mv elma365/* $(VERSION)/elma365/
+	rm -rf elma365
 
-	# === Скачиваем чарт elma365-dbs ===
-	@echo "📦 Скачиваем чарт elma365-dbs (latest)..."
+	@echo "📥 Копируем values-elma365.yaml"
+	cp elma365-appsets/values-elma365.yaml $(VERSION)/elma365/
+
+	@echo "📦 Скачиваем чарт elma365-dbs (latest)"
 	helm pull elma365/elma365-dbs --version latest --untar
-	mv elma365-dbs $(VERSION)/elma365-dbs
-
-	# === Копируем актуальные values-elma365-dbs.yaml ===
-	@echo "📥 Копируем values-elma365-dbs.yaml из elma365-appsets/apps/elma365-dbs/"
 	mkdir -p $(VERSION)/elma365-dbs
-	cp elma365-appsets/apps/elma365-dbs/values-elma365-dbs.yaml $(VERSION)/elma365-dbs/
+	mv elma365-dbs/*/elma365-dbs/
+	rm -rf elma365-dbs
 
-	# === Git commit & tag ===
-	@echo "📌 Добавляем в Git и тегируем"
-	git add $(VERSION)
-	git commit -m "🚀 Добавлена версия $(VERSION) с Helm-чартами"
-	git tag -a $(VERSION) -m "Release $(VERSION)"
-	git push origin main --tags
+	@echo "📥 Копируем values-elma365-dbs.yaml"
+	cp elma365-appset/values-elma365-dbs.yaml/elma365-dbs/
 
-	@echo "✅ Готово: $(VERSION) выпущена и запушена"
+	@git add $(VERSION)
+	@git commit -m "📦 Добавлена версия $(VERSION) с чартами и values"
+	@git tag -a $(VERSION) -m "Release $(VERSION)"
+	@git push origin main --tags
+
+
+VERSION ?= 2025.4.1
+APPS_DIR := apps
+
+.PHONY: gen-apps
+gen-apps:
+	@echo "📁 Генерирую приложения ArgoCD для версии $(VERSION)..."
+	@mkdir -p $(APPS_DIR)
+
+	@APP_FILE=$(APPS_DIR)/elma365-$(VERSION).yaml && \
+	DBS_FILE=$(APPS_DIR)/elma365-dbs-$(VERSION).yaml && \
+
+	echo "📄 Создаю $$APP_FILE" && \
+	cat > $$APP_FILE <<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: elma365-$(subst .,-,$(VERSION))
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git
+    targetRevision: main
+    path: $(VERSION)/elma365
+    helm:
+      valueFiles:
+        - values-elma365.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: elma365
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+EOF
+
+	echo "📄 Создаю $$DBS_FILE" && \
+	cat > $$DBS_FILE <<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: elma365-dbs
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git
+    targetRevision: main
+    path: $(VERSION)/elma365-dbs
+    helm:
+      valueFiles:
+        - values-elma365-dbs.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: elma365-dbs
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+EOF
+
+	@echo "📦 Добавляю файлы в Git..."
+	git add $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs-$(VERSION).yaml
+	git commit -m "🔧 Добавлены приложения elma365 и elma365-dbs для версии $(VERSION)"
+	git push
+	@echo "✅ Готово: приложения для $(VERSION) добавлены"

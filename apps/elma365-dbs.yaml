@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: elma365-dbs-2025-4-1
+  name: elma365-dbs
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "0"
@@ -21,3 +21,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
+
+
