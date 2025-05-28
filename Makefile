@@ -58,7 +58,8 @@ dbs-update:
 
 .PHONY: sync-status
 
-VERSION ?= 2025.4.1
+VERSION ?= 2025.4.3
+APPS_DIR := apps
 
 .PHONY: release
 release:
@@ -73,25 +74,21 @@ release:
 	rm -rf elma365
 
 	@echo "📥 Копируем values-elma365.yaml"
-	cp elma365-appsets/values-elma365.yaml $(VERSION)/elma365/
+	cp elma365-appsets/apps/elma365/values-elma365.yaml $(VERSION)/elma365/
 
 	@echo "📦 Скачиваем чарт elma365-dbs (latest)"
 	helm pull elma365/elma365-dbs --version latest --untar
 	mkdir -p $(VERSION)/elma365-dbs
-	mv elma365-dbs/*/elma365-dbs/
+	mv elma365-dbs/* $(VERSION)/elma365-dbs/
 	rm -rf elma365-dbs
 
 	@echo "📥 Копируем values-elma365-dbs.yaml"
-	cp elma365-appset/values-elma365-dbs.yaml/elma365-dbs/
+	cp elma365-appsets/apps/elma365-dbs/values-elma365-dbs.yaml $(VERSION)/elma365-dbs/
 
 	@git add $(VERSION)
 	@git commit -m "📦 Добавлена версия $(VERSION) с чартами и values"
 	@git tag -a $(VERSION) -m "Release $(VERSION)"
 	@git push origin main --tags
-
-
-VERSION ?= 2025.4.1
-APPS_DIR := apps
 
 .PHONY: gen-apps
 gen-apps:
@@ -133,7 +130,7 @@ EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: elma365-dbs
+  name: elma365-dbs-$(subst .,-,$(VERSION))
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "0"
@@ -148,15 +145,16 @@ spec:
         - values-elma365-dbs.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: elma365-dbs
-  syncPolicy:
+    namespace: elma365
     automated:
       prune: true
       selfHeal: true
 EOF
 
-	@echo "📦 Добавляю файлы в Git..."
-	git add $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs-$(VERSION).yaml
-	git commit -m "🔧 Добавлены приложения elma365 и elma365-dbs для версии $(VERSION)"
-	git push
-	@echo "✅ Готово: приложения для $(VERSION) добавлены"
+	@git add $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs-$(VERSION).yaml
+	@git commit -m "🔧 Добавлены приложения elma365 и elma365-dbs для версии $(VERSION)"
+	@git push
+
+.PHONY: release-full
+release-full: release gen-apps
+	@echo "✅ Полный релиз $(VERSION) завершён: чарты, values, приложения"
