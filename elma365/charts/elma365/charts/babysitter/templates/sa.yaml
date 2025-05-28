@@ -1,5 +1,0 @@
-# Service account for babysitter
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: babysitter-sa

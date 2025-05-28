@@ -1,3 +1,0 @@
-{{- if .Values.global.helmLibrary }}
-{{- include "helm-library.vpa" . }}
-{{- end }}

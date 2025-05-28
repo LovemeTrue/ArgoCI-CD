@@ -69,7 +69,8 @@ release:
 
 	@echo "🧹 Очищаем старые директории, если есть..."
 	rm -rf $(VERSION)/elma365 $(VERSION)/elma365-dbs
-	
+	rm -rf $(VERSION)
+
 	@echo "📦 Скачиваем чарт elma365..."
 	helm pull elma365/elma365 --version $(VERSION) --untar
 	mkdir -p $(VERSION)/elma365
@@ -80,7 +81,7 @@ release:
 	cp values/values-elma365.yaml $(VERSION)/elma365/
 
 	@echo "📦 Скачиваем чарт elma365-dbs (latest)"
-	helm pull elma365/elma365-dbs --version latest --untar
+	helm pull elma365/elma365-dbs --untar
 	mkdir -p $(VERSION)/elma365-dbs
 	mv elma365-dbs/* $(VERSION)/elma365-dbs/
 	rm -rf elma365-dbs
@@ -93,13 +94,14 @@ release:
 	@git tag -a $(VERSION) -m "Release $(VERSION)"
 	@git push origin main --tags
 
+APPS_DIR := apps
+
 .PHONY: gen-apps
 gen-apps:
 	@echo "📁 Генерирую приложения ArgoCD для версии $(VERSION)..."
-	@mkdir -p $(APPS_DIR)
 
 	@APP_FILE=$(APPS_DIR)/elma365-$(VERSION).yaml && \
-	DBS_FILE=$(APPS_DIR)/elma365-dbs-$(VERSION).yaml && \
+	DBS_FILE=$(APPS_DIR)/elma365-dbs.yaml && \
 
 	echo "📄 Создаю $$APP_FILE" && \
 	cat > $$APP_FILE <<EOF
@@ -150,7 +152,7 @@ gen-apps:
 			- values-elma365-dbs.yaml
 	destination:
 		server: https://kubernetes.default.svc
-		namespace: elma365
+		namespace: elma365-dbs
 		automated:
 		prune: true
 		selfHeal: true
