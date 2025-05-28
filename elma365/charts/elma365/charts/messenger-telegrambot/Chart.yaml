@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: Elma365 telegrambot service
+home: https://git.elewise.com/elma365/messenger-telegrambot
+name: messenger-telegrambot
+sources:
+- dreg.elewise.com:5005/elma365/messenger-telegrambot
+type: application
+version: 0.1.0

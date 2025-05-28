@@ -1,0 +1,3 @@
+{{- define "helm-library.deployment.terminationgraceperiod" }}
+terminationGracePeriodSeconds: {{ if ne (.Values.global.terminationGracePeriodSeconds | int64) 0 }}{{ .Values.global.terminationGracePeriodSeconds }}{{ else }}{{ default "30" .Values.terminationGracePeriodSeconds }}{{ end }}
+{{- end }}

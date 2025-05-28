@@ -1,0 +1,147 @@
+{{- define "helm-library.deployment.probes" }}
+{{- if .Values.livenessProbe }}
+livenessProbe:
+  {{- toYaml .Values.livenessProbe | nindent 2 }}
+{{- else if .Values.global.livenessProbe }}
+livenessProbe:
+  {{- toYaml .Values.global.livenessProbe | nindent 2 }}
+{{- end }}
+{{- if .Values.readinessProbe }}
+readinessProbe:
+  {{- toYaml .Values.readinessProbe | nindent 2 }}
+{{- else if .Values.global.readinessProbe }}
+readinessProbe:
+  {{- toYaml .Values.global.readinessProbe | nindent 2 }}
+{{- end }}
+{{- if .Values.startupProbe }}
+startupProbe:
+  {{- toYaml .Values.startupProbe | nindent 2 }}
+{{- else if .Values.global.startupProbe }}
+startupProbe:
+  {{- toYaml .Values.global.startupProbe | nindent 2 }}
+{{- end }}
+{{- end }}
+
+
+{{- define "helm-library.deployment.probes-front" }}
+{{- if .Values.livenessProbe }}
+livenessProbe:
+  {{- toYaml .Values.livenessProbe | nindent 2 }}
+{{- else if .Values.global.front.livenessProbe }}
+livenessProbe:
+  {{- toYaml .Values.global.front.livenessProbe | nindent 2 }}
+{{- end }}
+{{- if .Values.readinessProbe }}
+readinessProbe:
+  {{- toYaml .Values.readinessProbe | nindent 2 }}
+{{- else if .Values.global.front.readinessProbe }}
+readinessProbe:
+  {{- toYaml .Values.global.front.readinessProbe | nindent 2 }}
+{{- end }}
+{{- if .Values.startupProbe }}
+startupProbe:
+  {{- toYaml .Values.startupProbe | nindent 2 }}
+{{- else if .Values.global.front.startupProbe }}
+startupProbe:
+  {{- toYaml .Values.global.front.startupProbe | nindent 2 }}
+{{- end }}
+{{- end }}
+
+
+{{- define "helm-library.deployment.probes-gotenberg" }}
+{{- if .Values.gotenberg.livenessProbe }}
+livenessProbe:
+  {{- toYaml .Values.gotenberg.livenessProbe | nindent 2 }}
+{{- else if .Values.global.gotenberg.livenessProbe }}
+livenessProbe:
+  {{- toYaml .Values.global.gotenberg.livenessProbe | nindent 2 }}
+{{- end }}
+{{- if .Values.gotenberg.readinessProbe }}
+readinessProbe:
+  {{- toYaml .Values.gotenberg.readinessProbe | nindent 2 }}
+{{- else if .Values.global.gotenberg.readinessProbe }}
+readinessProbe:
+  {{- toYaml .Values.global.gotenberg.readinessProbe | nindent 2 }}
+{{- end }}
+{{- if .Values.gotenberg.startupProbe }}
+startupProbe:
+  {{- toYaml .Values.gotenberg.startupProbe | nindent 2 }}
+{{- else if .Values.global.gotenberg.startupProbe }}
+startupProbe:
+  {{- toYaml .Values.global.gotenberg.startupProbe | nindent 2 }}
+{{- end }}
+{{- end }}
+
+
+{{- define "helm-library.deployment.probes-dumper" }}
+{{- if .Values.dumper.livenessProbe }}
+livenessProbe:
+  {{- toYaml .Values.dumper.livenessProbe | nindent 2 }}
+{{- else if .Values.global.dumper.livenessProbe }}
+livenessProbe:
+  {{- toYaml .Values.global.dumper.livenessProbe | nindent 2 }}
+{{- end }}
+{{- if .Values.dumper.readinessProbe }}
+readinessProbe:
+  {{- toYaml .Values.dumper.readinessProbe | nindent 2 }}
+{{- else if .Values.global.dumper.readinessProbe }}
+readinessProbe:
+  {{- toYaml .Values.global.dumper.readinessProbe | nindent 2 }}
+{{- end }}
+{{- if .Values.dumper.startupProbe }}
+startupProbe:
+  {{- toYaml .Values.dumper.startupProbe | nindent 2 }}
+{{- else if .Values.global.dumper.startupProbe }}
+startupProbe:
+  {{- toYaml .Values.global.dumper.startupProbe | nindent 2 }}
+{{- end }}
+{{- end }}
+
+
+{{- define "helm-library.deployment.probes-dottemplater" }}
+{{- if .Values.dottemplater.livenessProbe }}
+livenessProbe:
+  {{- toYaml .Values.dottemplater.livenessProbe | nindent 2 }}
+{{- else if .Values.global.dottemplater.livenessProbe }}
+livenessProbe:
+  {{- toYaml .Values.global.dottemplater.livenessProbe | nindent 2 }}
+{{- end }}
+{{- if .Values.dottemplater.readinessProbe }}
+readinessProbe:
+  {{- toYaml .Values.dottemplater.readinessProbe | nindent 2 }}
+{{- else if .Values.global.dottemplater.readinessProbe }}
+readinessProbe:
+  {{- toYaml .Values.global.dottemplater.readinessProbe | nindent 2 }}
+{{- end }}
+{{- if .Values.dottemplater.startupProbe }}
+startupProbe:
+  {{- toYaml .Values.dottemplater.startupProbe | nindent 2 }}
+{{- else if .Values.global.dottemplater.startupProbe }}
+startupProbe:
+  {{- toYaml .Values.global.dottemplater.startupProbe | nindent 2 }}
+{{- end }}
+{{- end }}
+
+{{- define "helm-library.deployment.probes-projectxmlexport" }}
+{{- if .Values.projectxmlexport.livenessProbe }}
+livenessProbe:
+  {{- toYaml .Values.projectxmlexport.livenessProbe | nindent 2 }}
+{{- else if .Values.global.projectxmlexport.livenessProbe }}
+livenessProbe:
+  {{- toYaml .Values.global.projectxmlexport.livenessProbe | nindent 2 }}
+{{- end }}
+{{- if .Values.projectxmlexport.readinessProbe }}
+readinessProbe:
+  {{- toYaml .Values.projectxmlexport.readinessProbe | nindent 2 }}
+{{- else if .Values.global.projectxmlexport.readinessProbe }}
+readinessProbe:
+  {{- toYaml .Values.global.projectxmlexport.readinessProbe | nindent 2 }}
+{{- end }}
+{{- if .Values.projectxmlexport.startupProbe }}
+startupProbe:
+  {{- toYaml .Values.projectxmlexport.startupProbe | nindent 2 }}
+{{- else if .Values.global.projectxmlexport.startupProbe }}
+startupProbe:
+  {{- toYaml .Values.global.projectxmlexport.startupProbe | nindent 2 }}
+{{- end }}
+{{- end }}

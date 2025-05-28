@@ -1,0 +1,70 @@
+- alert: vahter down
+  annotations:
+    title: "Instance  down"
+    timestamp: > 
+      time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+    description: |-
+      Instance of vahter has been down for more than 3 minute.
+      VALUE = {{ $value }}
+      LABELS = {{ $labels }}
+  expr: |-
+    up {app='vahter'} == 0
+  for: 3m
+  labels:
+    severity: critical
+- alert: Activation company failed
+  annotations:
+    title: "Activation company failed"
+    timestamp: > 
+      time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+    description: |-
+      Activation company failed
+      VALUE = {{ $value }}
+      LABELS = {{ $labels }}
+  expr: |-
+    increase(elma365_vahter_trial_activations_count_by_code{code!="201"}[1m])!=0
+  for: 0m
+  labels:
+    severity: critical
+- alert: Activations not from blank
+  annotations:
+    title: "Activations not from blank"
+    timestamp: > 
+      time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+    description: |-
+      Activations not from blank
+      VALUE = {{ $value }}
+      LABELS = {{ $labels }}
+  expr: |-
+    increase(elma365_vahter_trial_activations_not_from_blank_count_by_params[1m])!=0
+  for: 0m
+  labels:
+    severity: critical    
+- alert: Too long activation from blank
+  annotations:
+    title: "Too long activation from blank"
+    timestamp: > 
+      time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+    description: |-
+      Too long activation from blank
+      VALUE = {{ $value }}
+      LABELS = {{ $labels }}
+  expr: |-
+    histogram_quantile(0.95, sum(rate(elma365_vahter_trial_activation_from_blank_duration_seconds_bucket{region=~"$cluster"}[3m])) by (le))>30
+  for: 0m
+  labels:
+    severity: critical   
+- alert: Too long activation not from blank
+  annotations:
+    title: "Too long activation not from blank"
+    timestamp: > 
+      time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+    description: |-
+      Too long activation not from blank
+      VALUE = {{ $value }}
+      LABELS = {{ $labels }}
+  expr: |-
+    histogram_quantile(0.95, sum(rate(elma365_vahter_trial_activation_not_from_blank_duration_seconds_bucket{region=~"$cluster"}[3m])) by (le))>120
+  for: 0m
+  labels:
+    severity: critical   

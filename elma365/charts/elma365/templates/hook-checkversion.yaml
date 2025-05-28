@@ -1,0 +1,61 @@
+{{- if eq (toString .Values.global.checkversion) "true" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: checkversion
+  labels:
+    tier: elma365
+    action: checkversion
+  annotations:
+    helm.sh/hook: pre-upgrade
+    helm.sh/hook-weight: "-50"
+    helm.sh/hook-delete-policy: before-hook-creation
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/sync-wave: "-50"
+spec:
+  template:
+    metadata:
+      labels:
+        sidecar.istio.io/inject: "false"
+      annotations:
+        linkerd.io/inject: disabled
+    spec:
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.jobGlobal.podSecurityContext" . | nindent 8 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}
+      imagePullSecrets:
+        {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+      containers:
+        - name: service
+          image: "{{ .Values.global.image.repository }}/elma365/onpremise/checkversion:{{ .Chart.Version }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          env:
+            - name: ELMA365_NEXT_VERSION
+              value: {{ .Chart.Version }}
+            - name: ELMA365_CHECK_SUPPORT_EXPIRE
+              value: {{ default false .Values.global.enableCheckSupportExpire | quote }}
+            - name: ELMA365_UPDATE_LTS_ONLY
+              value: {{ default false .Values.global.updateLtsOnly | quote }}
+            - name: ELMA365_CURRENT_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: elma365-env-config
+                  key: ELMA365_VERSION
+          args:
+            - "/bin/sh"
+            - "-ec"
+            - 'sleep 5 && /opt/elma365/checkversion.sh'
+        {{- if .Values.global.helmLibrary }}
+          securityContext:
+            {{- include "helm-library.jobGlobal.securityContext" . | nindent 12 }}
+          {{- include "helm-library.jobGlobal.resources" . | indent 10 }}
+        {{- end }}
+      restartPolicy: OnFailure
+  backoffLimit: 2
+  activeDeadlineSeconds: {{ default 1800 .Values.global.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: {{ default 600 .Values.global.setupJobTtlSecondsAfterFinished }}
+{{- end }}

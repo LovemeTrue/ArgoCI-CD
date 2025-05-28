@@ -1,0 +1,19 @@
+{{- if eq (toString .Values.global.openshift) "true" }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ template "main.name" . }}-publicapi
+spec:
+  host: {{ .Values.global.host }}
+  path: "/pub"
+  port:
+    targetPort: http
+  tls:
+    insecureEdgeTerminationPolicy: Allow
+    termination: edge
+  to:
+    kind: Service
+    name: {{ template "main.name" . }}
+    weight: 100
+  wildcardPolicy: None
+{{- end }}

@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "otelier.name" . }}
+  labels:
+    {{- include "otelier.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: grpc
+      port: {{ .Values.global.grpc_port }}
+      targetPort: grpc
+      protocol: TCP
+    - name: http
+      port: {{ .Values.global.http_port }}
+      targetPort: http
+      protocol: TCP
+    - name: http-otlp
+      port: {{ .Values.global.monitoring.lowcode.internalOtlpHttpPort }}
+      targetPort: http-otlp
+      protocol: TCP
+    - name: http-metrics
+      port: {{ .Values.global.http_metrics }}
+      targetPort: http
+      protocol: TCP
+    - name: otlp-prom
+      port: {{ .Values.appconfig.lowcode.metricExportPort }}
+      targetPort: otlp-prom
+      protocol: TCP
+  selector:
+    {{- include "otelier.selectorLabels" . | nindent 4 }}

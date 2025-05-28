@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 1.16.0
+description: Elma365 mailer - сервис отправки email сообщений
+home: https://git.elewise.com/elma365/mailer
+name: mailer
+sources:
+- dreg.elewise.com:5005/elma365/mailer
+type: application
+version: 0.1.0
