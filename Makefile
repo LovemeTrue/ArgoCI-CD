@@ -57,8 +57,40 @@ dbs-update:
 	git commit -m "AutoMakeCommit"
 
 .PHONY: sync-status
-sync-status:
-	argocd app get elma365 --refresh
-	git checkout main
-	git add -A
-	git commit -m "AutoMakeCommit"
+
+VERSION ?= 2025.4.1
+
+.PHONY: release
+release:
+	@echo "🚀 Выполняю выпуск версии $(VERSION)"
+
+	# === Скачиваем чарт elma365 ===
+	@echo "📦 Скачиваем чарт elma365..."
+	helm repo add elma365 https://charts.elma365.tech
+	helm repo update
+	helm pull elma365/elma365 --version $(VERSION) --untar
+	mv elma365 $(VERSION)/elma365
+
+	# === Копируем актуальные values-elma365.yaml ===
+	@echo "📥 Копируем values-elma365.yaml из elma365-appsets/apps/elma365/"
+	mkdir -p $(VERSION)/elma365
+	cp elma365-appsets/apps/elma365/values-elma365.yaml $(VERSION)/elma365/
+
+	# === Скачиваем чарт elma365-dbs ===
+	@echo "📦 Скачиваем чарт elma365-dbs (latest)..."
+	helm pull elma365/elma365-dbs --version latest --untar
+	mv elma365-dbs $(VERSION)/elma365-dbs
+
+	# === Копируем актуальные values-elma365-dbs.yaml ===
+	@echo "📥 Копируем values-elma365-dbs.yaml из elma365-appsets/apps/elma365-dbs/"
+	mkdir -p $(VERSION)/elma365-dbs
+	cp elma365-appsets/apps/elma365-dbs/values-elma365-dbs.yaml $(VERSION)/elma365-dbs/
+
+	# === Git commit & tag ===
+	@echo "📌 Добавляем в Git и тегируем"
+	git add $(VERSION)
+	git commit -m "🚀 Добавлена версия $(VERSION) с Helm-чартами"
+	git tag -a $(VERSION) -m "Release $(VERSION)"
+	git push origin main --tags
+
+	@echo "✅ Готово: $(VERSION) выпущена и запушена"

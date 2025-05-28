@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: elma365-version
-data:
-  version: "2025.4.2"
