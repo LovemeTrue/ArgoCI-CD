@@ -163,6 +163,13 @@ gen-apps:
 	@git commit -m "🔧 Добавлены приложения elma365 и elma365-dbs для версии $(VERSION)"
 	@git push
 
+.PHONY: cleanup-git
+cleanup-git:
+	@echo "🧹 Удаляю локальные ветки кроме main..."
+	@git branch | grep -v "^\* main" | grep -v "main" | xargs -r git branch -D
+	@git checkout main
+	@git pull
+	@echo "✅ Возврат в main и удаление лишних веток завершено"
 .PHONY: release-full
-release-full: release gen-apps
+release-full: release gen-apps cleanup-git
 	@echo "✅ Полный релиз $(VERSION) завершён: чарты, values, приложения"
