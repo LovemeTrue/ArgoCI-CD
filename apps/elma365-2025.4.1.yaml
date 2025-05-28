@@ -16,7 +16,7 @@ spec:
         - values-elma365.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: elma365-2025-4-1
+    namespace: elma365
   syncPolicy:
     automated:
       prune: true
