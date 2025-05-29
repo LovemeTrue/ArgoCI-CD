@@ -54,12 +54,9 @@ APPS_DIR := apps
 gen-apps:
 	@echo "📁 Генерирую приложения ArgoCD для версии $(VERSION)..."
 	@mkdir -p $(APPS_DIR)
-
-	@bash -c '\
-	APP_FILE="$(APPS_DIR)/elma365-$(VERSION).yaml"; \
-	DBS_FILE="$(APPS_DIR)/elma365-dbs.yaml"; \
-	echo "📄 Перезаписываю $$APP_FILE"; \
-	cat > $$APP_FILE <<EOF
+	
+	@echo "📄 Перезаписываю $(APPS_DIR)/elma365-$(VERSION).yaml"
+	@cat > $(APPS_DIR)/elma365-$(VERSION).yaml <<'EOF'
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -86,8 +83,8 @@ spec:
       selfHeal: true
 EOF
 
-	echo "📄 Перезаписываю $$DBS_FILE"; \
-	cat > $$DBS_FILE <<EOF
+	@echo "📄 Перезаписываю $(APPS_DIR)/elma365-dbs.yaml"
+	@cat > $(APPS_DIR)/elma365-dbs.yaml <<'EOF'
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -112,13 +109,10 @@ spec:
       prune: true
       selfHeal: true
 EOF
-	'
 
 	@git add $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs.yaml
 	@git commit -m "🔁 Перегенерация ArgoCD приложений для версии $(VERSION)" || echo "🟡 Нет изменений для коммита"
 	@git push
-
-
 
 
 .PHONY: cleanup-git
