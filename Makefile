@@ -128,8 +128,12 @@ cleanup-git:
 
 .PHONY: cleanup-old-apps
 cleanup-old-apps:
-	@echo "🧹 Удаляю старые ArgoCD приложения elma365-* кроме $(VERSION)..."
-	@find $(APPS_DIR) -type f -name "elma365-$(VERSION).yaml" -exec rm {} \;
+	@echo "🧹 Удаляю старые ArgoCD приложения elma365-*, кроме $(VERSION) и dbs..."
+	@find $(APPS_DIR) -type f -name "elma365-*.yaml" \
+		! -name "elma365-$(VERSION).yaml" \
+		! -name "elma365-dbs.yaml" \
+		-exec rm -v {} \;
+
 
 .PHONY: release-full
 release-full: release gen-apps cleanup-git cleanup-old-apps
