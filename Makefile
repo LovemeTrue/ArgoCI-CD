@@ -63,29 +63,27 @@ APPS_DIR := apps
 
 .PHONY: release
 release:
-	@echo "🚀 Выполняю выпуск версии $(VERSION)"
-	helm repo add elma365 https://charts.elma365.tech
-	helm repo update
+	.PHONY: release
+release:
+	@set -e; \
+	echo "🚀 Выполняю выпуск версии $(VERSION)"; \
+	echo "📦 Скачиваем чарт elma365..."; \
+	helm pull elma365/elma365 --version $(VERSION) --untar; \
+	
+	mkdir -p $(VERSION)/elma365; \
+	mv elma365/* $(VERSION)/elma365/; \
+	rm -rf elma365; \
+	echo "📥 Копируем values-elma365.yaml"; \
+	cp values/values-elma365.yaml $(VERSION)/elma365/; \
 
-	@echo "🧹 Очищаем старые директории, если есть..."
-	rm -rf $(VERSION)/elma365 $(VERSION)/elma365-dbs
-	rm -rf $(VERSION)
-
-	@echo "📦 Скачиваем чарт elma365..."
-	helm pull elma365/elma365 --version $(VERSION) --untar
-	mkdir -p $(VERSION)/elma365
-	mv elma365/* $(VERSION)/elma365/
-
-	@echo "📥 Копируем values-elma365.yaml"
-	cp values/values-elma365.yaml $(VERSION)/elma365/
-
-	@echo "📦 Скачиваем чарт elma365-dbs"
-	helm pull elma365/elma365-dbs --untar
-	mkdir -p $(VERSION)/elma365-dbs
-	mv elma365-dbs/* $(VERSION)/elma365-dbs/
-
-	@echo "📥 Копируем values-elma365-dbs.yaml"
+	echo "📦 Скачиваем чарт elma365-dbs"; \
+	helm pull elma365/elma365-dbs --untar; \
+	mkdir -p $(VERSION)/elma365-dbs; \
+	mv elma365-dbs/* $(VERSION)/elma365-dbs/; \
+	rm -rf elma365-dbs; \
+	echo "📥 Копируем values-elma365-dbs.yaml"; \
 	cp values/values-elma365-dbs.yaml $(VERSION)/elma365-dbs/
+
 
 	@git add $(VERSION)
 	@git commit -m "📦 Добавлена версия $(VERSION) с чартами и values"
