@@ -48,7 +48,7 @@ release:
 
 	@git push
 
-APPS_DIR := ./apps
+APPS_DIR := apps
 .PHONY: gen-apps
 gen-apps:
 	@echo "📁 Генерирую приложения ArgoCD для версии $(VERSION)..."
