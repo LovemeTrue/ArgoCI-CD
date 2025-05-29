@@ -75,7 +75,6 @@ release:
 	helm pull elma365/elma365 --version $(VERSION) --untar
 	mkdir -p $(VERSION)/elma365
 	mv elma365/* $(VERSION)/elma365/
-	rm -rf elma365
 
 	@echo "📥 Копируем values-elma365.yaml"
 	cp values/values-elma365.yaml $(VERSION)/elma365/
@@ -84,7 +83,6 @@ release:
 	helm pull elma365/elma365-dbs --untar
 	mkdir -p $(VERSION)/elma365-dbs
 	mv elma365-dbs/* $(VERSION)/elma365-dbs/
-	rm -rf elma365-dbs
 
 	@echo "📥 Копируем values-elma365-dbs.yaml"
 	cp values/values-elma365-dbs.yaml $(VERSION)/elma365-dbs/
