@@ -5,6 +5,7 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/depends-on: '[elma365-dbs]'
 spec:
   project: default
   source:
