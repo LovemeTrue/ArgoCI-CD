@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git
     targetRevision: main
-    path: 2025.4.1/elma365-dbs
+    path: 2025.4.2/elma365-dbs
     helm:
       valueFiles:
         - values-elma365-dbs.yaml
@@ -21,5 +21,3 @@ spec:
     automated:
       prune: true
       selfHeal: true
-
-
