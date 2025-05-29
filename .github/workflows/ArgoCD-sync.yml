@@ -11,6 +11,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: 🛠 Установка argocd CLI
+        run: |
+          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x argocd
+          sudo mv argocd /usr/local/bin/argocd
+
       - name: 🔐 Вход в ArgoCD
         run: |
           argocd login ${{ secrets.ARGOCD_SERVER }} \
@@ -20,7 +26,7 @@ jobs:
 
       - name: 🔄 Синхронизация elma365
         run: |
-          argocd app sync elma365 --prune --force --replace --insecure
+          argocd app sync elma365-* --prune --force --replace --insecure
 
       - name: 🧪 Проверка статуса приложений
         run: |
