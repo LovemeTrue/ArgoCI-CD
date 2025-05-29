@@ -132,5 +132,9 @@ cleanup-old-apps:
 	@find $(APPS_DIR) -type f -name "elma365-*.yaml" ! -name "elma365-$(VERSION).yaml" -exec rm {} \;
 
 .PHONY: release-full
-release-full: release gen-apps cleanup-git
+release-full: release gen-apps cleanup-git cleanup-old-apps
+	@git add $(APPS_DIR)
+	@git commit -m "♻️ Очистка старых версий, релиз $(VERSION)" || echo "🟡 Нет изменений"
+	
+	@git push
 	@echo "✅ Полный релиз $(VERSION) завершён: чарты, values, приложения"
