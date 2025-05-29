@@ -15,7 +15,7 @@ data:
   ELMA365_DEBUG: {{ default "false" .Values.debug | quote }}
   ELMA365_ALLOWED_LANGUAGES: {{ default "ru-RU" ( join "," .Values.language.allowed) | quote }}
   ELMA365_DEFAULT_LANGUAGE: {{ default "ru-RU" .Values.language.default | quote }}
-  
+
   # experimental
   {{- if .Values.global.expMainUseOrgunitService }}
   ELMA365_EXP_MAIN_USE_ORGUNIT_SERVICE: {{ default "false" .Values.global.expMainUseOrgunitService | quote }}
