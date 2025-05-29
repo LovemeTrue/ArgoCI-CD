@@ -58,7 +58,7 @@ dbs-update:
 
 .PHONY: sync-status
 
-VERSION ?= 2025.4.3
+VERSION ?= 2025.4.1
 APPS_DIR := apps
 
 .PHONY: release
@@ -69,7 +69,7 @@ release:
 	echo "🚀 Выполняю выпуск версии $(VERSION)"; \
 	echo "📦 Скачиваем чарт elma365..."; \
 	helm pull elma365/elma365 --version $(VERSION) --untar; \
-	
+
 	mkdir -p $(VERSION)/elma365; \
 	mv elma365/* $(VERSION)/elma365/; \
 	rm -rf elma365; \
