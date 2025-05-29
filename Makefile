@@ -48,71 +48,74 @@ release:
 
 	@git push
 
-APPS_DIR := apps
+AAPPS_DIR := apps
 
 .PHONY: gen-apps
 gen-apps:
 	@echo "📁 Генерирую приложения ArgoCD для версии $(VERSION)..."
 	@mkdir -p $(APPS_DIR)
 	
+	@# Генерация elma365-$(VERSION).yaml
 	@echo "📄 Перезаписываю $(APPS_DIR)/elma365-$(VERSION).yaml"
-	@cat > $(APPS_DIR)/elma365-$(VERSION).yaml <<'EOF'
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: elma365
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
-    argocd.argoproj.io/depends-on: "[elma365-dbs]"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git
-    targetRevision: main
-    path: $(VERSION)/elma365
-    helm:
-      valueFiles:
-        - values-elma365.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: elma365
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-EOF
+	@echo "apiVersion: argoproj.io/v1alpha1" > $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "kind: Application" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "metadata:" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "  name: elma365" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "  namespace: argocd" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "  annotations:" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "    argocd.argoproj.io/sync-wave: \"1\"" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "    argocd.argoproj.io/depends-on: \"[elma365-dbs]\"" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "spec:" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "  project: default" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "  source:" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "    repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "    targetRevision: main" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "    path: $(VERSION)/elma365" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "    helm:" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "      valueFiles:" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "        - values-elma365.yaml" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "  destination:" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "    server: https://kubernetes.default.svc" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "    namespace: elma365" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "  syncPolicy:" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "    automated:" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "      prune: true" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "      selfHeal: true" >> $(APPS_DIR)/elma365-$(VERSION).yaml
 
+	@# Генерация elma365-dbs.yaml
 	@echo "📄 Перезаписываю $(APPS_DIR)/elma365-dbs.yaml"
-	@cat > $(APPS_DIR)/elma365-dbs.yaml <<'EOF'
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: elma365-dbs
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git
-    targetRevision: main
-    path: $(VERSION)/elma365-dbs
-    helm:
-      valueFiles:
-        - values-elma365-dbs.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: elma365-dbs
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-EOF
+	@echo "apiVersion: argoproj.io/v1alpha1" > $(APPS_DIR)/elma365-dbs.yaml
+	@echo "kind: Application" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "metadata:" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "  name: elma365-dbs" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "  namespace: argocd" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "  annotations:" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "    argocd.argoproj.io/sync-wave: \"0\"" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "spec:" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "  project: default" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "  source:" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "    repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "    targetRevision: main" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "    path: $(VERSION)/elma365-dbs" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "    helm:" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "      valueFiles:" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "        - values-elma365-dbs.yaml" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "  destination:" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "    server: https://kubernetes.default.svc" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "    namespace: elma365-dbs" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "  syncPolicy:" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "    automated:" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "      prune: true" >> $(APPS_DIR)/elma365-dbs.yaml
+	@echo "      selfHeal: true" >> $(APPS_DIR)/elma365-dbs.yaml
 
-	@git add $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs.yaml
-	@git commit -m "🔁 Перегенерация ArgoCD приложений для версии $(VERSION)" || echo "🟡 Нет изменений для коммита"
-	@git push
+	@# Git операции
+	@if [ -n "$$(git status --porcelain $(APPS_DIR))" ]; then \
+		git add $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs.yaml; \
+		git commit -m "🔁 Перегенерация ArgoCD приложений для версии $(VERSION)"; \
+		git push; \
+	else \
+		echo "🟡 Нет изменений для коммита"; \
+	fi
 
 
 .PHONY: cleanup-git
