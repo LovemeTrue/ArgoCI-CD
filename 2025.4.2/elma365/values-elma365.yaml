@@ -32,6 +32,7 @@ elma365:
       defaultStorageClass: "longhorn"
 ## проверка подключения к БД
     checkdbs: true
+    checkversion: false
 ## переопределить версию Kubernetes
     kubeVersion: ""
 ## включение поддержки HAProxy Ingress для работы на платформе OpenShift
