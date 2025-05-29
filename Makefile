@@ -1,5 +1,4 @@
 # === config ===
-CHART_VERSION ?= 2025.4.1
 DBS_MSG ?= обновление параметров БД
 REPO_URL = https://github.com/LovemeTrue/ArgoCI-CD.git
 
@@ -11,7 +10,7 @@ help:
 	@echo "  make release-full VERSION=2025.4.1    # Создать релиз версии elma365, сгенерить apps для каждого чарта и выполнть git clean локальных веток.
 
 
-VERSION ?= 2025.4.1
+VERSION ?= 0
 APPS_DIR := apps
 
 .PHONY: release
@@ -49,7 +48,7 @@ release:
 	@git tag -a $(VERSION) -m "Release $(VERSION)"
 	@git push origin main --tags
 
-APPS_DIR := apps
+APPS_DIR := /ArgoCI-CD/apps
 .PHONY: gen-apps
 gen-apps:
 	@echo "📁 Генерирую приложения ArgoCD для версии $(VERSION)..."
