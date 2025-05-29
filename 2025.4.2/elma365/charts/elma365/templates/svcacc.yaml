@@ -1,0 +1,35 @@
+{{- if eq .Values.global.edition "enterprise" }}
+{{- if eq (toString .Values.global.monitoring.provisioner) "microk8s" }}
+{{- if eq (toString .Values.global.monitoring.dashboard.enabled) "true" }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: internal-kubectl
+  namespace: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: modify-pods
+  namespace: monitoring
+rules:
+  - apiGroups: ["extensions","apps"]
+    resources: ["deployments"]
+    verbs: ["patch","get","list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: modify-pods-to-sa
+  namespace: monitoring
+subjects:
+  - kind: ServiceAccount
+    name: internal-kubectl
+    namespace: monitoring
+roleRef:
+  kind: Role
+  name: modify-pods
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}
+{{- end }}

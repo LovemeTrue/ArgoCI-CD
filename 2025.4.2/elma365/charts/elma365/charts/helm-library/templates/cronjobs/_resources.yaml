@@ -1,0 +1,19 @@
+{{- define "helm-library.cronjobs.resources" }}
+{{- if or .Values.global.autoscaling.enabled .Values.autoscaling.enabled .Values.global.resourceLimits }}
+resources:
+  {{- if ne (len .Values.resourcesJobs) 0 -}}
+  {{- toYaml .Values.resourcesJobs | nindent 2 -}}
+  {{- else -}}
+  {{- toYaml .Values.global.resourcesJobs | nindent 2 -}}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "helm-library.cronjobsGlobal.resources" }}
+{{- if or .Values.global.autoscaling.enabled .Values.global.resourceLimits }}
+resources:
+  {{- if ne (len .Values.global.resourcesJobs) 0 -}}
+  {{- toYaml .Values.global.resourcesJobs | nindent 2 -}}
+  {{- end }}
+{{- end }}
+{{- end }}

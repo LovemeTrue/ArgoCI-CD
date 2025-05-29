@@ -1,0 +1,99 @@
+{{- $name := include "collector.name" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "collector.name" . }}
+  labels:
+    {{- include "collector.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.global.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.global.autoscaling.enabled }}
+  replicas: {{ if or (kindIs "float64" .Values.replicaCount) (kindIs "int64" .Values.replicaCount) }}{{ .Values.replicaCount }}{{ else }}{{ .Values.global.replicaCount }}{{ end }}
+  {{ end }}
+  selector:
+    matchLabels:
+      {{- include "collector.selectorLabels" . | nindent 6 }}
+  strategy: {{- toYaml .Values.global.updateStrategy | nindent 4 }}
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.podAnnotations }}      
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.global.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}      
+      labels:
+        {{- include "collector.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      imagePullSecrets:
+        {{- if .Values.image.pullSecret }}
+        {{- range .Values.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- else }}
+        {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository | default .Values.global.image.repository }}/elma365/collector/service:{{ .Values.images.service }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.global.grpc_port }}
+            - name: http
+              containerPort: {{ .Values.global.http_port }}
+          env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: ELMA365_POOL_POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: elma365-db-connections
+                  key: RO_POSTGRES_URL
+                  optional: true
+            - name: ELMA365_POOL_MAX_OPEN_CONNS
+              value: {{ .Values.global.postgres.poolMaxOpenConns | default .Values.appconfig.poolMaxOpenConns | quote }}
+            - name: ELMA365_POOL_MAX_IDLE_CONNS
+              value: {{ .Values.global.postgres.poolMaxIdleConns | default .Values.appconfig.poolMaxIdleConns | quote }}
+            - name: ELMA365_POOL_CONN_MAX_LIFE_TIME
+              value: {{ .Values.global.postgres.poolConnMaxLifetime | default .Values.appconfig.poolConnMaxLifetime | quote }}
+            - name: ELMA365_POOL_CHECK_TIMEOUT
+              value: {{ .Values.global.postgres.poolCheckTimeout | default .Values.appconfig.poolCheckTimeout | quote }}
+            - name: ELMA365_INDICES_BY_THRESHOLD_THRESHOLD
+              value: {{ .Values.appconfig.indicesByThreshold.threshold | quote }}
+          {{- if .Values.global.helmLibrary }}
+            {{- include "helm-library.deployment.env" . | indent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: elma365-env-config
+                optional: true
+            - secretRef:
+                name: elma365-db-connections
+                optional: true
+      {{- if .Values.global.helmLibrary }}
+          securityContext:
+            {{- include "helm-library.deployment.securityContext" . | nindent 12 }}
+          {{- include "helm-library.deployment.probes" . | indent 10 }}
+          {{- include "helm-library.deployment.resources" . | indent 10 }}
+          {{- include "helm-library.deployment.volumeMounts" . | indent 10 }}
+          {{- include "helm-library.deployment.lifecycle" . | indent 10 }}
+        {{- include "helm-library.deployment.volumes" . | indent 6 }}
+        {{- include "helm-library.deployment.terminationgraceperiod" . | indent 6 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}

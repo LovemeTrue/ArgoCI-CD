@@ -1,0 +1,17 @@
+{{- $name := include "worker.name" . }}
+{{- $queueName := "script.default" }}
+{{- $autoscaling := .Values.autoscaling | default .Values.global.autoscaling }}
+{{- $localContext := dict "name" $name "queueName" $queueName "defaultPool" true "poolKey" "default" "autoscaling" $autoscaling }}
+{{- $params := dict "GlobalContext" . "LocalContext" $localContext "Chart" .Chart "Release" .Release "Values" .Values "Capabilities" .Capabilities }}
+
+{{- template "worker.deployment" $params }}
+---
+{{- template "worker.service" $params }}
+---
+{{- if .Values.global.helmLibrary }}
+{{- include "helm-library.hpa-worker" $params }}
+---
+{{- include "helm-library.keda-worker" $params }}
+---
+{{- include "helm-library.servicemonitor-worker" $params }}
+{{- end }}

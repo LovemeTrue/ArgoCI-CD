@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: CRM services
+home: https://git.elewise.com/elma365/crm
+name: crm
+sources:
+- dreg.elewise.com:5005/elma365/crm
+type: application
+version: 0.1.0
