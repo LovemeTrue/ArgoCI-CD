@@ -1,0 +1,100 @@
+{{- if eq (toString .Values.global.monitoring.provisioner) "deckhouse" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: deckhouse-namespace-labeling
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-28"
+spec:
+  backoffLimit: {{ .Values.global.backoffLimit }}
+  {{- if .Values.global.setupJobTtlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.global.setupJobTtlSecondsAfterFinished }}
+  {{- end }}
+  template:
+    metadata:
+      name: deckhouse-namespace-labeling
+      labels:
+        sidecar.istio.io/inject: "false"
+      annotations:
+        linkerd.io/inject: disabled
+    spec:
+      serviceAccountName: internal-kubectl-secrets
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.jobGlobal.podSecurityContext" . | nindent 8 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}
+      imagePullSecrets:
+      {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+      {{- end }}
+      containers:
+      - name: deckhouse-namespace-labeling
+        image: "{{ .Values.global.image.repository }}/docker/toolkit/kubectl:1.25.13-debian-11-r17"
+        imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+        command: ["sh", "-c", "if ! kubectl label namespace {{ .Release.Namespace }} prometheus.deckhouse.io/monitor-watcher-enabled=true; then exit 0; fi"]
+        volumeMounts:
+        - name: secret-volume
+          mountPath: /tmp
+      {{- if .Values.global.helmLibrary }}
+        securityContext:
+          {{- include "helm-library.jobGlobal.securityContext" . | nindent 10 }}
+        {{- include "helm-library.jobGlobal.resources" . | indent 8 }}
+      {{- end }}
+      volumes:
+      - name: secret-volume
+        emptyDir: {}
+      restartPolicy: OnFailure
+---
+{{- end }}
+{{- if .Values.global.terminationGracePeriodSeconds }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: linkerd-namespace-annotate
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-28"
+spec:
+  backoffLimit: {{ .Values.global.backoffLimit }}
+  {{- if .Values.global.setupJobTtlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.global.setupJobTtlSecondsAfterFinished }}
+  {{- end }}
+  template:
+    metadata:
+      name: linkerd-namespace-annotate
+      labels:
+        sidecar.istio.io/inject: "false"
+      annotations:
+        linkerd.io/inject: disabled
+    spec:
+      serviceAccountName: internal-kubectl-secrets
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.jobGlobal.podSecurityContext" . | nindent 8 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}
+      imagePullSecrets:
+      {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+      {{- end }}
+      containers:
+      - name: linkerd-namespace-annotate
+        image: "{{ .Values.global.image.repository }}/docker/toolkit/kubectl:1.25.13-debian-11-r17"
+        imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+        command: ["sh", "-c", "if ! kubectl annotate namespace {{ .Release.Namespace }} config.alpha.linkerd.io/proxy-wait-before-exit-seconds={{ mulf (.Values.global.terminationGracePeriodSeconds | default 30) 0.7 | int64 }}; then exit 0; fi"]
+        volumeMounts:
+        - name: secret-volume
+          mountPath: /tmp
+      {{- if .Values.global.helmLibrary }}
+        securityContext:
+          {{- include "helm-library.jobGlobal.securityContext" . | nindent 10 }}
+        {{- include "helm-library.jobGlobal.resources" . | indent 8 }}
+      {{- end }}
+      volumes:
+      - name: secret-volume
+        emptyDir: {}
+      restartPolicy: OnFailure
+---
+{{- end }}

@@ -1,0 +1,61 @@
+{{- $TLSSecretName := "<set tls secret name>" -}}
+{{- if and (hasKey .Values.global "ingress") (hasKey .Values.global.ingress "existingTLSSecret") -}}
+  {{- $TLSSecretName = .Values.global.ingress.existingTLSSecret -}}
+{{- else if and (hasKey .Values.global "ingress") (hasKey .Values.global.ingress "onpremiseTls") .Values.global.ingress.onpremiseTls.enabled -}}
+  {{- $TLSSecretName = .Values.global.ingress.onpremiseTls.secret -}}
+{{- end -}}
+{{- $servicePath := .Values.ingress.path -}}
+{{- $hosts := (include "generateHosts" .) | fromJsonArray }}
+{{- $serviceName := include "hydra-adaptor.name" . }}
+{{- $servicePort := .Values.global.http_port }}
+{{- if ne (toString .Values.global.openshift) "true" }}
+{{- if semverCompare ">=1.19-0" (include "kubeVersion" .) }}
+apiVersion: networking.k8s.io/v1
+{{- else -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ template "hydra-adaptor.name" . }}
+  labels:
+    {{- include "hydra-adaptor.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    {{- with mergeOverwrite .Values.global.ingress.annotations .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if and .Values.global.ingress.ingressClassName (include "hydra-adaptor.supportsIngressClassname" .) }}
+  ingressClassName: {{ .Values.global.ingress.ingressClassName | quote }}
+  {{- end }}
+  rules:
+    {{- range $host := $hosts }}
+      {{- if and (eq (len $hosts) 1) (not $.Values.global.ingress.hostEnabled) (not $.Values.global.ingress.onpremiseTls.enabled) (not $.Values.global.ingress.existingTLSSecret) }}
+    - http:
+      {{- else }}
+    - host: {{ . | squote }}
+      http:
+      {{- end }}
+        paths:
+          - path: {{ $servicePath }}(.*)
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+      {{- end }}
+  {{- if or (and .Values.global.ingress.onpremiseTls.enabled (eq .Values.global.solution "onPremise")) .Values.global.ingress.existingTLSSecret }}
+  tls:
+    - hosts:
+        {{- range $host := $hosts }}
+        - {{ . | squote }}
+        {{- end }}
+      secretName: {{ $TLSSecretName }}
+  {{- end }}
+{{- end }}

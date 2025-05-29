@@ -1,0 +1,110 @@
+{{- if eq .Values.global.solution "saas" -}}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "worker.name" . }}-network-policy
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "worker.name" . }}
+  policyTypes:
+    - Egress
+  ingress:
+    - from:
+        - podSelector: {}
+          namespaceSelector: {}
+  egress:
+    {{- if .Values.networkPolicy.allowIPLocalDns }}
+    - to:
+        {{- range .Values.networkPolicy.allowIPLocalDns }}
+        - ipBlock:
+            cidr: {{ . }}
+        {{- end }}
+      ports:
+        {{- range .Values.networkPolicy.allowPortLocalDns }}
+        - port: {{ . }}
+          protocol: TCP
+        - port: {{ . }}
+          protocol: UDP
+        {{- end }}
+    {{- end }}
+    {{- range .Values.networkPolicy.allowDnsLabel }}
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              {{ .key }}: {{ .value | quote }}
+      ports:
+        - port: 53
+          protocol: UDP
+    {{- end }}
+    {{- if .Values.networkPolicy.allowIngressLabel }}
+    {{- range .Values.networkPolicy.allowIngressLabel }}
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              {{ .key }}: {{ .value | quote }}
+      ports:
+        - port: 80
+        - port: 443
+    {{- end }}
+    {{- end }}
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace | quote }}
+          podSelector:
+            matchExpressions:
+              - key: tier
+                operator: NotIn
+                values:
+                - elma365
+    {{- if .Values.networkPolicy.allowNamespaceName }}
+    {{- range .Values.networkPolicy.allowNamespaceName }}
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ . | quote }}
+          podSelector:
+            matchExpressions:
+              - key: tier
+                operator: NotIn
+                values:
+                - elma365
+    {{- end }}
+    {{- end }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app: {{ include "gateway.name" . }}
+      ports:
+        - port: {{ .Values.global.http_port }}
+        - port: {{ .Values.global.grpc_port }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app: "otelier"
+      ports:
+        - port: {{ .Values.global.monitoring.lowcode.internalOtlpHttpPort }}
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - rabbitmq
+                - rabbitmq-ha
+      ports:
+        - port: 5672
+        - port: 15672
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+            {{- range .Values.networkPolicy.allowAllIPexcept }}
+            - {{ . }}
+            {{- end }}
+{{- end }}
