@@ -1,6 +1,5 @@
 elma365:
   global:
-    expMainUseOrgunitService: true
 ## домен (FQDN) или ip адрес, по которому будет доступна система
     host: 'kind.elewise.local'
 ## выбор редакции, доступные варианты: standard, enterprise
