@@ -32,7 +32,7 @@
 ---
 
 ## 📂 Структура репозитория
-
+```
 ├── apps/ # ArgoCD Application YAML'ы
 ├── values/ # values-файлы для Helm
 ├── 2025.4.3/
@@ -40,7 +40,7 @@
 │ └── elma365-dbs/ # чарт + values
 ├── Makefile # Автоматизация
 ├── .github/workflows/ # CI (ArgoCD sync, helm validate)
-
+```
 ---
 
 ## 🔧 Возможности Makefile
