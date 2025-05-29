@@ -11,6 +11,7 @@ spec:
     repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git
     targetRevision: main
     path: 2025.4.1/elma365-dbs
+    chart: elma365-dbs
     helm:
       valueFiles:
         - values-elma365-dbs.yaml
