@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: Elma365 auth center
+home: https://git.elewise.com/elma365/vahter
+name: vahter
+sources:
+- dreg.elewise.com:5005/elma365/vahter
+type: application
+version: 0.2.10

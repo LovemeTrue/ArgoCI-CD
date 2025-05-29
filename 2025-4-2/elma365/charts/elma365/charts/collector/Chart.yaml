@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 1.16.0
+description: collection manager
+home: https://git.elewise.com/elma365/collector
+name: collector
+sources:
+- dreg.elewise.com:5005/elma365/collector
+type: application
+version: 0.1.0

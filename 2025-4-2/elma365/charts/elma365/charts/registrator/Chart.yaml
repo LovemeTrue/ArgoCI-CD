@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 1.0.0
+description: A Helm chart for Kubernetes
+home: https://git.elewise.com/elma365/registrator
+name: registrator
+sources:
+- dreg.elewise.com:5005/elma365/registrator
+type: application
+version: 0.1.0

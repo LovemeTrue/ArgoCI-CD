@@ -1,0 +1,11 @@
+{{- define "helm-library.deployment.securityContext" }}
+  {{- if ne (len .Values.securityContext) 0 }}
+    {{- toYaml .Values.securityContext }}
+  {{- else if ne (len .Values.global.securityContext) 0 }}
+    {{- toYaml .Values.global.securityContext }}
+  {{- else -}}
+runAsUser: 1001
+seccompProfile:
+  type: RuntimeDefault
+  {{- end }}
+{{- end }}

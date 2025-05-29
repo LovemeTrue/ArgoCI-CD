@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: Elma365 auth service
+home: https://git.elewise.com/elma365/serv_auth
+name: auth
+sources:
+- dreg.elewise.com:5005/elma365/serv_auth
+type: application
+version: 0.1.0

@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: Elma365 support messenger service
+home: https://git.elewise.com/elma365/support-messenger
+name: support-messenger
+sources:
+- dreg.elewise.com:5005/elma365/support-messenger
+type: application
+version: 0.1.0
