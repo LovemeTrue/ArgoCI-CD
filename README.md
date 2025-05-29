@@ -1,29 +1,66 @@
-# How to structure your Argo CD repositories using Application Sets
+# 🚀 Elma365 GitOps Platform with ArgoCD & Helm
 
-This is an exaple repository for Organizing your applications with Argo CD.
+Этот репозиторий реализует **GitOps-платформу** для деплоя `elma365` и `elma365-dbs` в Kubernetes через **ArgoCD + Helm**, с полной автоматизацией через Makefile и GitHub Actions.
 
-## Best practice - Use the three level structure
+---
 
-The starting point should be a 3 level structure as shown in the image below
+## 🧰 Возможности
 
-![structure](docs/hierarchy-of-manifests.png)
+- 📦 Установка Helm-чартов `elma365` и `elma365-dbs`
+- 🔁 Управление версиями — только одна актуальная версия чарта в кластере
+- 🔄 Автоматическая синхронизация с ArgoCD
+- 🧹 Удаление старых приложений и локальных Git-веток
+- 🛠 CI/CD через GitHub Actions
+- ☁️ АргоCD App of Apps + `sync-wave` + `depends-on`
 
-At the lowest level we have the Kubernetes manifests that define how the application runs (category 1 of manifests). These are your Kustomize or Helm templates and they are completely self-contained, meaning that they can be deployed on their own on any cluster even without Argo CD. We have covered in detail the structure of these files in the promotion blog post. 
+---
 
-One level above, we have the Application Set as explained in the previous section. These wrap the main Kubernetes manifests into Argo CD applications (category 2 of manifests). Notice that in most cases you only need ApplicationSets and not individual Application CRDs.
+## ⚙️ Требования к окружению
 
-Last, as an optional component you can group all your application sets in an App-of-App that will help you bootstrap a completely empty cluster with all apps. This level might not be needed if you have a different way of creating clusters (i.e. with terraform/pulumi/crossplane) and this is why it is not really essential.
+На машине, откуда ты администрируешь деплой, установи:
 
-And that’s it!
+| Пакет       | Назначение                            |
+|-------------|----------------------------------------|
+| `kubectl`   | Работа с Kubernetes                    |
+| `helm`      | Работа с Helm-чартами                  |
+| `make`      | Выполнение целей Makefile              |
+| `yq`        | Редактирование YAML (CLI)              |
+| `git`       | Работа с Git                           |
+| `gh`        | GitHub CLI — создание Pull Request     |
+| `argocd`    | CLI для ArgoCD (опционально)           |
 
-Notice how simple this pattern is:
+---
 
-There are only 3 levels of abstraction. We have seen companies that have 4 or 5 making the mental model much more complex
-Each level is completely independent of everything else. You can install the Kubernetes manifests on their own, or you can pick a specific application set or you can pick everything at the root. But it is your choice.
-Helm and Kustomize are only used once at the Kubernetes manifests and nowhere else. This makes the templating system super easy to understand
-
-![folders](docs/levels.png)
-
-Read the full blog post at https://codefresh.io/blog/how-to-structure-your-argo-cd-repositories-using-application-sets/
+## 📂 Структура репозитория
 
 
+.
+├── apps/ # ArgoCD Application YAML'ы
+├── values/ # values-файлы для Helm
+├── 2025.4.3/
+│ ├── elma365/ # чарт + values
+│ └── elma365-dbs/ # чарт + values
+├── Makefile # Автоматизация
+├── .github/workflows/ # CI (ArgoCD sync, helm validate)
+
+---
+
+## 🔧 Возможности Makefile
+
+| Команда                              | Что делает                                                   |
+|--------------------------------------|--------------------------------------------------------------|
+| `make release VERSION=2025.4.3`      | Скачивает чарты elma365/elma365-dbs и копирует values        |
+| `make gen-apps VERSION=2025.4.3`     | Генерирует YAML-файлы ArgoCD Application                    |
+| `make release-full VERSION=...`      | Полный цикл: release → cleanup → gen-apps → git push         |
+| `make cleanup-old-apps`              | Удаляет старые `apps/elma365-*.yaml`, кроме текущей версии   |
+| `make cleanup-local-branches`        | Удаляет все локальные Git-ветки кроме `main`                 |
+| `make delete-old-applications`       | Удаляет старые ArgoCD Application из кластера                |
+
+---
+
+## 🚀 Деплой новой версии
+
+Пример для версии `2025.4.3`:
+
+```bash
+make release-full VERSION=2025.4.3
