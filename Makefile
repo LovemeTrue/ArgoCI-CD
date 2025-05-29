@@ -121,7 +121,8 @@ gen-apps:
 .PHONY: cleanup-git
 cleanup-git:
 	@echo "🧹 Удаляю локальные ветки кроме main..."
-	@git branch | grep -v "^\* main" | grep -v "main" | xargs -r git branch -D
+	@git checkout main
+	@git branch | grep -v "^\* main" | grep -v "main" | xargs -r git branch -D || true
 	@git checkout main
 	@git pull
 	@echo "✅ Возврат в main и удаление лишних веток завершено"
