@@ -16,25 +16,18 @@ APPS_DIR := apps
 .PHONY: release
 release:
 	@echo "🚀 Выполняю выпуск версии $(VERSION)"
-	helm repo add elma365 https://charts.elma365.tech
-	helm repo update
-
-	@echo "🧹 Очищаем старые директории, если есть..."
 	rm -rf $(VERSION)/elma365 $(VERSION)/elma365-dbs
-	rm -rf $(VERSION)
-	rm -rf elma365
 
 	@echo "📦 Скачиваем чарт elma365..."
 	helm pull elma365/elma365 --version $(VERSION) --untar
 	mkdir -p $(VERSION)/elma365
 	mv elma365/* $(VERSION)/elma365/
 	rm -rf elma365
-	
 
 	@echo "📥 Копируем values-elma365.yaml"
 	cp values/values-elma365.yaml $(VERSION)/elma365/
-	rm -rf elma365-dbs
-	@echo "📦 Скачиваем чарт elma365-dbs"
+
+	@echo "📦 Скачиваем чарт elma365-dbs..."
 	helm pull elma365/elma365-dbs --untar
 	mkdir -p $(VERSION)/elma365-dbs
 	mv elma365-dbs/* $(VERSION)/elma365-dbs/
@@ -44,15 +37,22 @@ release:
 	cp values/values-elma365-dbs.yaml $(VERSION)/elma365-dbs/
 
 	@git add $(VERSION)
-	@git commit -m "📦 Добавлена версия $(VERSION) с чартами и values"
-	@git tag -a $(VERSION) -m "Release $(VERSION)"
-	@git push origin main --tags
+	@git commit -m "📦 Добавлена версия $(VERSION) с чартами и values" || echo "🟡 Нет новых файлов для коммита"
 
-APPS_DIR := /ArgoCI-CD/apps
+	@if git tag | grep -q "^$(VERSION)$$"; then \
+		echo "🔁 Git tag $(VERSION) уже существует, пропускаю тегирование."; \
+	else \
+		git tag -a $(VERSION) -m "Release $(VERSION)"; \
+		git push origin --tags; \
+	fi
+
+	@git push
+
+APPS_DIR := ./apps
 .PHONY: gen-apps
 gen-apps:
 	@echo "📁 Генерирую приложения ArgoCD для версии $(VERSION)..."
-
+	@mkdir -p $(APPS_DIR)
 	@APP_FILE="$(APPS_DIR)/elma365-$(VERSION).yaml"; \
 	DBS_FILE="$(APPS_DIR)/elma365-dbs.yaml"; \
 
