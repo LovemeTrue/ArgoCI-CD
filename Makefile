@@ -80,7 +80,7 @@ release:
 	@echo "📥 Копируем values-elma365.yaml"
 	cp values/values-elma365.yaml $(VERSION)/elma365/
 
-	@echo "📦 Скачиваем чарт elma365-dbs (latest)"
+	@echo "📦 Скачиваем чарт elma365-dbs"
 	helm pull elma365/elma365-dbs --untar
 	mkdir -p $(VERSION)/elma365-dbs
 	mv elma365-dbs/* $(VERSION)/elma365-dbs/
