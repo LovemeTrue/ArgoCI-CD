@@ -1,7 +1,8 @@
 elma365:
   global:
+    global:
     rbac:
-      create: false
+      create: true
     secrets:
       create: false
     expMainUseOrgunitService: 'true'
