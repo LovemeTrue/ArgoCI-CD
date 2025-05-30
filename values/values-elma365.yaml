@@ -4,7 +4,7 @@ elma365:
     rbac:
       create: true
     secrets:
-      create: true
+      create: false
     expMainUseOrgunitService: 'true'
 ## домен (FQDN) или ip адрес, по которому будет доступна система
     host: 'kind.elewise.local'
