@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: elma365-2025.4.2
+  name: elma365-2025 -4 -2
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "1"
