@@ -1,11 +1,11 @@
 elma365:
   global:
-    global:
-    rbac:
-      create: true
-    secrets:
-      create: false
-    expMainUseOrgunitService: 'true'
+    # global:
+    # rbac:
+    #   create: true
+    # secrets:
+    #   create: false
+    # expMainUseOrgunitService: 'true'
 ## домен (FQDN) или ip адрес, по которому будет доступна система
     host: 'kind.elewise.local'
 ## выбор редакции, доступные варианты: standard, enterprise
