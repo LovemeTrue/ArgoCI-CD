@@ -1,9 +1,0 @@
-apiVersion: v2
-appVersion: "1.0"
-description: Elma365 hydra-adaptor
-home: https://git.elewise.com/elma365/hydra-adaptor
-name: hydra-adaptor
-sources:
-- dreg.elewise.com:5005/elma365/hydra-adaptor
-type: application
-version: 0.1.0
