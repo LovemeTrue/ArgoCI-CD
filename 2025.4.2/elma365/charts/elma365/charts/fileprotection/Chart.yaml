@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: Elma365 Fileprotection - сервис защиты файлов от неавторизованных пользователей
+name: fileprotection
+type: application
+version: 0.1.0

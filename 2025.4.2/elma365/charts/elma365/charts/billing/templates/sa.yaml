@@ -1,0 +1,5 @@
+# Service account for billing
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: billing-sa

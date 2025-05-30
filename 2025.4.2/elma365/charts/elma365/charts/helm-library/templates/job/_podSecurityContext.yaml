@@ -1,0 +1,21 @@
+{{- define "helm-library.job.podSecurityContext" -}}
+  {{- if ne (len .Values.podSecurityContext) 0 }}
+    {{- toYaml .Values.podSecurityContext }}
+  {{- else if ne (len .Values.global.podSecurityContext) 0 }}
+    {{- toYaml .Values.global.podSecurityContext }}
+  {{- else -}}
+runAsUser: 1001
+seccompProfile:
+  type: RuntimeDefault
+  {{- end }}
+{{- end }}
+
+{{- define "helm-library.jobGlobal.podSecurityContext" -}}
+  {{- if ne (len .Values.global.podSecurityContext) 0 }}
+    {{- toYaml .Values.global.podSecurityContext }}
+  {{- else -}}
+runAsUser: 1001
+seccompProfile:
+  type: RuntimeDefault
+  {{- end }}
+{{- end }}

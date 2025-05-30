@@ -1,0 +1,44 @@
+- alert: Collector down
+  annotations:
+    title: "Instance  down"
+    timestamp: >
+      time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+    description: |-
+      Instance of collector has been down for more than 3 minute.
+      VALUE = {{ $value }}
+      LABELS = {{ $labels }}
+  expr: |-
+    up {app='collector'} == 0
+  for: 3m
+  labels:
+    severity: critical
+- alert: Low response
+  annotations:
+    title: "Low response rate"
+    timestamp: >
+      time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+    description: |-
+      Response rate of collector less than 95% for more than 5 minute.
+      VALUE = {{ $value }}
+      LABELS = {{ $labels }}
+  expr: |-
+    sum(irate(response_total{app='collector', classification='success', direction='inbound'}[1m]))
+    / sum(irate(response_total{app='collector', direction='inbound'}[1m])) < 0.95
+  for: 5m
+  labels:
+    severity: critical
+- alert: Long latencies for event delivery
+  annotations:
+    title: "Long latencies for event delivery"
+    timestamp: >
+      time: {{ with query "time()" }}{{ . | first | value | humanizeTimestamp }}{{ end }}
+    description: |-
+      Long latencies for event delivery for collector
+      VALUE = {{ $value }}
+      LABELS = {{ $labels }}
+  expr: |-
+    histogram_quantile(0.99, sum(irate(eventbus_delivery_duration_bucket{pod=~"collector.*"}[1m]))
+    by (le, namespace, pod)) > 500
+  for: 3m
+  labels:
+    severity: critical

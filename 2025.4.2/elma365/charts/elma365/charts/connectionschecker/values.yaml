@@ -1,0 +1,43 @@
+global:
+  namespace: ""
+  host: elma365.ru
+  edition: "standard"
+  solution: "onPremise"
+  env: "production"
+  labels: {}
+  annotations: {}
+  backoffLimit: 5
+  image:
+    repository: dreg.elewise.com:5005
+    pullPolicy: IfNotPresent
+    pullSecret:
+      - regsecret
+      - yandexsecret
+      - customsecret
+  resourcesJobs: {}
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+images:
+  service: ci-7870ff01
+image:
+  repository: {}
+  pullSecret: {}
+nameOverride: checkdbs
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+resourcesJobs: {}
+resources: {}
+connectionschecker:
+  labels:
+    tier: elma365
+    action: checkdbs
+annotations:
+  ci.elma365.com/commit: "b4557ede"
+  ci.elma365.com/checksum: "7870ff01"
+  ci.elma365.com/job_id: "3166718"
+  ci.elma365.com/timestamp: "2025-04-15T13:37:32+00:00"
+  ci.elma365.com/pipeline_id: "568902"

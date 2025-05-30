@@ -1,0 +1,67 @@
+{{- $TLSSecretName := "<set tls secret name>" -}}
+{{- if and (hasKey .Values.global "ingress") (hasKey .Values.global.ingress "existingTLSSecret") -}}
+  {{- $TLSSecretName = .Values.global.ingress.existingTLSSecret -}}
+{{- else if and (hasKey .Values.global "ingress") (hasKey .Values.global.ingress "onpremiseTls") .Values.global.ingress.onpremiseTls.enabled -}}
+  {{- $TLSSecretName = .Values.global.ingress.onpremiseTls.secret -}}
+{{- end -}}
+{{- $hosts := (include "generateHosts" .) | fromJsonArray }}
+{{- $serviceName := include "settings.name" . }}
+{{- $servicePort := .Values.global.http_port }}
+{{- if eq .Values.global.solution "saas" }}
+{{- if .Values.ingress.enabled }}
+{{- if ne (toString .Values.global.openshift) "true" }}
+{{- if semverCompare ">=1.19-0" (include "kubeVersion" .) }}
+apiVersion: networking.k8s.io/v1
+{{- else -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ template "settings.name" . }}
+  labels:
+    {{- include "settings.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: ingress-settings-password
+    nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required - settings'
+    {{- with mergeOverwrite .Values.global.ingress.annotations .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if and .Values.global.ingress.ingressClassName (include "settings.supportsIngressClassname" .) }}
+  ingressClassName: {{ .Values.global.ingress.ingressClassName | quote }}
+  {{- end }}
+  rules:
+    {{- range $host := $hosts }}
+      {{- if and (eq (len $hosts) 1) (not $.Values.global.ingress.hostEnabled) (not $.Values.global.ingress.onpremiseTls.enabled) (not $.Values.global.ingress.existingTLSSecret) }}
+    - http:
+      {{- else }}
+    - host: {{ . | squote }}
+      http:
+      {{- end }}
+        paths:
+          - path: /settings(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+      {{- end }}
+  {{- if or (and .Values.global.ingress.onpremiseTls.enabled (eq .Values.global.solution "onPremise")) .Values.global.ingress.existingTLSSecret }}
+  tls:
+    - hosts:
+        {{- range $host := $hosts }}
+        - {{ . | squote }}
+        {{- end }}
+      secretName: {{ $TLSSecretName }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

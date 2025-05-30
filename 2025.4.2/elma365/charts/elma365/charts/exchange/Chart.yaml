@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 1.16.0
+description: Сервис вычисления выражений
+home: https://git.elewise.com/elma365/exchange
+name: exchange
+sources:
+- dreg.elewise.com:5005/elma365/exchange
+type: application
+version: 0.1.0

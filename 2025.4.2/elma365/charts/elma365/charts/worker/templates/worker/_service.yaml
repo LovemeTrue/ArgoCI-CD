@@ -1,0 +1,34 @@
+{{- define "worker.service" }}
+
+{{/*
+Ниже описан API данного шаблона, ожидается, что параметры описанные будут переданы в шаблон.
+*/}}
+{{- $dot := required "GlobalContext should be passed" .GlobalContext }}
+{{- $localContext := required "LocalContext should be passed" .LocalContext }}
+{{- $name := required "Name should be passed" $localContext.name }}
+{{- $poolKey := required "PoolKey should be passed" $localContext.poolKey }}
+{{- $inputParams := .}}
+
+{{/*
+Шаблон сервиса.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "worker.pool.labels" $inputParams | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http-port-wrk
+      port: {{ $dot.Values.service.http_port_wrk }}
+      targetPort: http-port-wrk
+      protocol: TCP
+    - name: http-metrics
+      port: {{ $dot.Values.global.http_metrics }}
+      targetPort: http-port-wrk
+      protocol: TCP
+  selector:
+    {{- include "worker.pool.selectorLabels" $inputParams | nindent 4 }}
+{{- end}}
