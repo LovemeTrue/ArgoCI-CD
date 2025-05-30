@@ -1,9 +1,0 @@
-apiVersion: v2
-appVersion: 1.16.0
-description: Elma365 feed messages service
-home: https://git.elewise.com/elma365/feeder
-name: feeder
-sources:
-- dreg.elewise.com:5005/elma365/feeder
-type: application
-version: 0.1.0
