@@ -1,0 +1,21 @@
+{{- if and .Values.global.rbac.create (not (lookup "rbac.authorization.k8s.io/v1" "RoleBinding" .Release.Namespace "modify-secrets-to-sa")) }}
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: modify-secrets-to-sa
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: modify-secrets
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

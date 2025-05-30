@@ -1,5 +1,10 @@
 elma365:
   global:
+    rbac:
+      create: false
+    secrets:
+      create: false
+    expMainUseOrgunitService: 'true'
 ## домен (FQDN) или ip адрес, по которому будет доступна система
     host: 'kind.elewise.local'
 ## выбор редакции, доступные варианты: standard, enterprise
@@ -192,11 +197,11 @@ elma365:
 ## порт, который слушает SMTPсервер, например 25, или 485, или 587
       port: "465"
 ## адрес отправителя электронной почты, например "CompanyName <noreply@example.ru>"
-      from: "legkodogatca@gmail.com"
+      from: "panov@elma-bpm.com"
 ## пользователь для авторизации на SMTP сервере, например "noreply@example.ru" или "noreply"
-      user: "legkodogatca@gmail.com"
+      user: "panov@elma-bpm.com"
 ## пароль для авторизации на SMTP сервере
-      password: "lazypeon"
+      password: "panmKkFV9C"
 ## используется ли шифрование (true - если да, false - если нет)
       needTLS: true
 #    replicaCount: 1
