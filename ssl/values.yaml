@@ -1,0 +1,694 @@
+_addonOperatorModuleChecksum: 21442f58087e3f184afa4c153f41917f
+global:
+  clusterConfiguration:
+    apiVersion: deckhouse.io/v1
+    clusterDomain: cluster.local
+    clusterType: Static
+    defaultCRI: Containerd
+    kind: ClusterConfiguration
+    kubernetesVersion: "1.29"
+    podSubnetCIDR: 10.111.0.0/16
+    podSubnetNodeCIDRPrefix: "24"
+    serviceSubnetCIDR: 10.222.0.0/16
+  clusterIsBootstrapped: true
+  deckhouseEdition: CE
+  deckhouseVersion: v1.67.12
+  defaultClusterStorageClass: localpath
+  discovery:
+    apiVersions:
+    - deckhouse.io/v1beta1/ClusterPodMetric
+    - config.ratify.deislabs.io/v1beta1/KeyManagementProvider
+    - snapshot.storage.k8s.io/v1/VolumeSnapshotClass
+    - snapshot.storage.k8s.io/v1alpha1/VolumeSnapshotContent
+    - deckhouse.io/v1alpha1/NodeGroupConfiguration
+    - cluster.x-k8s.io/v1beta1/MachineDeployment
+    - cert-manager.io/v1/CertificateRequest
+    - monitoring.coreos.com/v1/ThanosRuler
+    - deckhouse.io/v1beta1/ClusterDeploymentMetric
+    - status.gatekeeper.sh/v1beta1/ConstraintPodStatus
+    - templates.gatekeeper.sh/v1alpha1/ConstraintTemplate
+    - cilium.io/v2/CiliumIdentity
+    - cilium.io/v2/CiliumLocalRedirectPolicy
+    - deckhouse.io/v1beta1/PodMetric
+    - deckhouse.io/v1alpha1/SecurityPolicy
+    - cilium.io/v2/CiliumClusterwideNetworkPolicy
+    - snapshot.storage.k8s.io/v1beta1/VolumeSnapshotClass
+    - deckhouse.io/v1alpha1/CustomAlertmanager
+    - deckhouse.io/v1alpha1/ClusterDeploymentMetric
+    - deckhouse.io/v1alpha1/ClusterIngressMetric
+    - autoscaling.k8s.io/v1/VerticalPodAutoscaler
+    - config.ratify.deislabs.io/v1beta1/Policy
+    - cluster.x-k8s.io/v1beta1/MachineSet
+    - deckhouse.io/v1alpha1/StaticInstance
+    - deckhouse.io/v1alpha1/AuthorizationRule
+    - autoscaling.k8s.io/v1beta2/VerticalPodAutoscalerCheckpoint
+    - deckhouse.io/v1alpha1/ClusterLoggingConfig
+    - status.gatekeeper.sh/v1beta1/ExpansionTemplatePodStatus
+    - machine.sapcloud.io/v1alpha1/Machine
+    - dex.coreos.com/v1/Connector
+    - deckhouse.io/v1beta1/ClusterStatefulSetMetric
+    - deckhouse.io/v1/ClusterAuthorizationRule
+    - deckhouse.io/v1/DexClient
+    - deckhouse.io/v1alpha1/Group
+    - monitoring.coreos.com/v1alpha1/ScrapeConfig
+    - mutations.gatekeeper.sh/v1/ModifySet
+    - snapshot.storage.k8s.io/v1/VolumeSnapshot
+    - cluster.x-k8s.io/v1beta1/MachineHealthCheck
+    - deckhouse.io/v1alpha1/SSHCredentials
+    - deckhouse.io/v1alpha1/ClusterAlert
+    - snapshot.storage.k8s.io/v1alpha1/VolumeSnapshot
+    - deckhouse.io/v1beta1/DeploymentMetric
+    - deckhouse.io/v1/NodeGroup
+    - deckhouse.io/v1/DexAuthenticator
+    - deckhouse.io/v1/GrafanaDashboardDefinition
+    - config.ratify.deislabs.io/v1beta1/Verifier
+    - config.ratify.deislabs.io/v1beta1/Store
+    - cilium.io/v2alpha1/CiliumCIDRGroup
+    - deckhouse.io/v1alpha1/NodeUser
+    - cert-manager.io/v1/ClusterIssuer
+    - monitoring.coreos.com/v1/ServiceMonitor
+    - cilium.io/v2alpha1/CiliumBGPPeeringPolicy
+    - cilium.io/v2/CiliumEndpoint
+    - cilium.io/v2alpha1/CiliumLoadBalancerIPPool
+    - machine.sapcloud.io/v1alpha1/PacketMachineClass
+    - deckhouse.io/v1beta1/IngressMetric
+    - deckhouse.io/v1alpha1/NamespaceMetric
+    - deckhouse.io/v1alpha1/Descheduler
+    - deckhouse.io/v1alpha1/UpmeterRemoteWrite
+    - config.ratify.deislabs.io/v1beta1/NamespacedStore
+    - snapshot.storage.k8s.io/v1alpha1/VolumeSnapshotClass
+    - deckhouse.io/v1/NodeUser
+    - deckhouse.io/v1alpha2/NodeGroup
+    - deckhouse.io/v1/GrafanaAdditionalDatasource
+    - mutations.gatekeeper.sh/v1/AssignMetadata
+    - machine.sapcloud.io/v1alpha1/AWSMachineClass
+    - monitoring.coreos.com/v1/Alertmanager
+    - monitoring.coreos.com/v1alpha1/PrometheusAgent
+    - deckhouse.io/v1/CustomPrometheusRules
+    - config.ratify.deislabs.io/v1alpha1/Verifier
+    - deckhouse.io/v1alpha1/OperationPolicy
+    - deckhouse.io/v2alpha1/DexAuthenticator
+    - deckhouse.io/v1alpha1/CustomPrometheusRules
+    - deckhouse.io/v1/User
+    - deckhouse.io/v1beta1/ClusterDaemonSetMetric
+    - autoscaling.k8s.io/v1beta2/VerticalPodAutoscaler
+    - autoscaling.k8s.io/v1/VerticalPodAutoscalerCheckpoint
+    - cilium.io/v2alpha1/CiliumPodIPPool
+    - infrastructure.cluster.x-k8s.io/v1alpha1/DeckhouseControlPlane
+    - deckhouse.io/v1alpha1/Instance
+    - machine.sapcloud.io/v1alpha1/AzureMachineClass
+    - deckhouse.io/v1alpha1/ClusterLogDestination
+    - machine.sapcloud.io/v1alpha1/MachineDeployment
+    - deckhouse.io/v1alpha1/GrafanaAdditionalDatasource
+    - deckhouse.io/v1beta1/ClusterIngressMetric
+    - deckhouse.io/v1alpha1/PodMetric
+    - status.gatekeeper.sh/v1beta1/ConstraintTemplatePodStatus
+    - mutations.gatekeeper.sh/v1beta1/Assign
+    - cilium.io/v2/CiliumNetworkPolicy
+    - machine.sapcloud.io/v1alpha1/OpenStackMachineClass
+    - deckhouse.io/v1alpha1/Downtime
+    - config.ratify.deislabs.io/v1beta1/NamespacedPolicy
+    - cilium.io/v2/CiliumEgressGatewayPolicy
+    - machine.sapcloud.io/v1alpha1/AlicloudMachineClass
+    - monitoring.coreos.com/v1/PodMonitor
+    - status.gatekeeper.sh/v1beta1/MutatorPodStatus
+    - apps.kruise.io/v1alpha1/DaemonSet
+    - deckhouse.io/v1/IngressNginxController
+    - deckhouse.io/v1/UpmeterRemoteWrite
+    - cilium.io/v2alpha1/CiliumL2AnnouncementPolicy
+    - cilium.io/v2alpha1/CiliumEndpointSlice
+    - cilium.io/v2/CiliumNode
+    - deckhouse.io/v1/DexProvider
+    - deckhouse.io/v1alpha1/Project
+    - expansion.gatekeeper.sh/v1beta1/ExpansionTemplate
+    - cilium.io/v2/CiliumExternalWorkload
+    - dex.coreos.com/v1/Password
+    - deckhouse.io/v1alpha1/DexProvider
+    - machine.sapcloud.io/v1alpha1/MachineSet
+    - deckhouse.io/v1alpha1/ServiceMetric
+    - mutations.gatekeeper.sh/v1alpha1/AssignImage
+    - mutations.gatekeeper.sh/v1alpha1/Assign
+    - snapshot.storage.k8s.io/v1beta1/VolumeSnapshot
+    - cluster.x-k8s.io/v1beta1/Machine
+    - deckhouse.io/v1alpha1/ClusterPodMetric
+    - deckhouse.io/v1alpha1/IngressNginxController
+    - templates.gatekeeper.sh/v1/ConstraintTemplate
+    - externaldata.gatekeeper.sh/v1alpha1/Provider
+    - deckhouse.io/v1alpha1/GrafanaAlertsChannel
+    - deckhouse.io/v1alpha1/ClusterDaemonSetMetric
+    - mutations.gatekeeper.sh/v1/Assign
+    - machine.sapcloud.io/v1alpha1/GCPMachineClass
+    - machine.sapcloud.io/v1alpha1/YandexMachineClass
+    - deckhouse.io/v1alpha1/DexClient
+    - deckhouse.io/v1alpha1/User
+    - monitoring.coreos.com/v1alpha1/AlertmanagerConfig
+    - deckhouse.io/v1alpha1/PrometheusRemoteWrite
+    - deckhouse.io/v1alpha1/IngressMetric
+    - mutations.gatekeeper.sh/v1beta1/AssignMetadata
+    - cilium.io/v2/CiliumClusterwideEnvoyConfig
+    - runtime.cluster.x-k8s.io/v1alpha1/ExtensionConfig
+    - acme.cert-manager.io/v1/Challenge
+    - deckhouse.io/v1alpha1/PodLoggingConfig
+    - deckhouse.io/v1alpha2/Project
+    - deckhouse.io/v1alpha1/ProjectTemplate
+    - deckhouse.io/v1alpha1/DeploymentMetric
+    - deckhouse.io/v1/UpmeterHookProbe
+    - snapshot.storage.k8s.io/v1/VolumeSnapshotContent
+    - snapshot.storage.k8s.io/v1beta1/VolumeSnapshotContent
+    - deckhouse.io/v1alpha1/KubeSchedulerWebhookConfiguration
+    - deckhouse.io/v1alpha1/ClusterAuthorizationRule
+    - cert-manager.io/v1/Issuer
+    - monitoring.coreos.com/v1/Probe
+    - config.ratify.deislabs.io/v1beta1/NamespacedKeyManagementProvider
+    - monitoring.coreos.com/v1/PrometheusRule
+    - deckhouse.io/v1alpha1/GrafanaDashboardDefinition
+    - deckhouse.io/v1beta1/ClusterServiceMetric
+    - mutations.gatekeeper.sh/v1alpha1/AssignMetadata
+    - externaldata.gatekeeper.sh/v1beta1/Provider
+    - mutations.gatekeeper.sh/v1alpha1/ModifySet
+    - mutations.gatekeeper.sh/v1beta1/ModifySet
+    - deckhouse.io/v1alpha1/ClusterServiceMetric
+    - deckhouse.io/v1beta1/DaemonSetMetric
+    - templates.gatekeeper.sh/v1beta1/ConstraintTemplate
+    - config.ratify.deislabs.io/v1alpha1/CertificateStore
+    - config.ratify.deislabs.io/v1beta1/NamespacedVerifier
+    - cilium.io/v2alpha1/CiliumEnvoyConfig
+    - cluster.x-k8s.io/v1beta1/Cluster
+    - deckhouse.io/v1alpha1/InstanceTypesCatalog
+    - infrastructure.cluster.x-k8s.io/v1alpha1/StaticCluster
+    - deckhouse.io/v1alpha1/NodeGroup
+    - config.ratify.deislabs.io/v1beta1/CertificateStore
+    - config.ratify.deislabs.io/v1alpha1/Store
+    - config.ratify.deislabs.io/v1alpha1/Policy
+    - cilium.io/v2alpha1/CiliumClusterwideEnvoyConfig
+    - dex.coreos.com/v1/OAuth2Client
+    - monitoring.coreos.com/v1/Prometheus
+    - deckhouse.io/v1beta1/ServiceMetric
+    - deckhouse.io/v1alpha2/Descheduler
+    - deckhouse.io/v1/PrometheusRemoteWrite
+    - deckhouse.io/v1alpha1/DaemonSetMetric
+    - deckhouse.io/v1beta1/NamespaceMetric
+    - deckhouse.io/v1beta1/StatefulSetMetric
+    - config.gatekeeper.sh/v1alpha1/Config
+    - deckhouse.io/v1alpha1/DexAuthenticator
+    - deckhouse.io/v1alpha1/StatefulSetMetric
+    - expansion.gatekeeper.sh/v1alpha1/ExpansionTemplate
+    - cilium.io/v2/CiliumEnvoyConfig
+    - acme.cert-manager.io/v1/Order
+    - cilium.io/v2alpha1/CiliumNodeConfig
+    - infrastructure.cluster.x-k8s.io/v1alpha1/StaticMachineTemplate
+    - machine.sapcloud.io/v1alpha1/VsphereMachineClass
+    - deckhouse.io/v1alpha1/ClusterStatefulSetMetric
+    - deckhouse.io/v1alpha1/LocalPathProvisioner
+    - cluster.x-k8s.io/v1beta1/MachinePool
+    - infrastructure.cluster.x-k8s.io/v1alpha1/StaticMachine
+    - cert-manager.io/v1/Certificate
+    clusterControlPlaneIsHighlyAvailable: false
+    clusterDNSAddress: 10.222.0.10
+    clusterDomain: cluster.local
+    clusterMasterCount: 1
+    clusterUUID: b44fe1d8-04a8-4403-b67e-45a141af7dc3
+    d8SpecificNodeCountByRole: {}
+    defaultStorageClass: localpath
+    extensionAPIServerAuthenticationRequestheaderClientCA: |
+      -----BEGIN CERTIFICATE-----
+      MIIDETCCAfmgAwIBAgIIaf9Yt+n8SecwDQYJKoZIhvcNAQELBQAwGTEXMBUGA1UE
+      AxMOZnJvbnQtcHJveHktY2EwHhcNMjQxMjE0MTEzNjEzWhcNMzQxMjEyMTE0MTEz
+      WjAZMRcwFQYDVQQDEw5mcm9udC1wcm94eS1jYTCCASIwDQYJKoZIhvcNAQEBBQAD
+      ggEPADCCAQoCggEBAL4w6l81N8mpcFd6OOEIYOE1XJWIfoscYB08a5XsdDVg5lAI
+      QgnJ4+wy6mKYAAE5n8BSf3yuYIXyamTLRu1Xv5EtgOtW/wCZSfHZAItyx/zeaSL+
+      16iA2qHyM0ais2V0ugz2RUmcnPbldgwHEMPF7irHI+LzaqsmNUVVleQkMTDNu2TB
+      ejVa5gQ1rPlUlOwofSEKoNtRJoSHgn+yg0U0jFS5IPb/LEJuMmNUo3mFpG69sLLZ
+      acQCy+yGcvpZ1QCMzc0TYIfQakndPtfbLz9m1g1o1YWabLcEsSv/v/ymWcmn238V
+      CPl/oHkeujcYajkMlhwSn88o0XER0thItge/P90CAwEAAaNdMFswDgYDVR0PAQH/
+      BAQDAgKkMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFEpNxjv8QAzuA+GiUE2v
+      CtGKaom0MBkGA1UdEQQSMBCCDmZyb250LXByb3h5LWNhMA0GCSqGSIb3DQEBCwUA
+      A4IBAQCc/9zPc7GhFfhUghSnJB5eRLYrbzo/+jqVyH3BGHxaY+7y3dRhaNc/GtHM
+      6cOzR03Y35nupfuqZCf1YVtdbBbJF/EjMieFIYy7dDfJhtyQPii1WnmYilJDih5+
+      JnRsytv7uZ2u8ZcRSZ3KL6a4ZbYw75+AMR5+CP/F+B8EsELGxyrIGEIphecrYDsz
+      CQwrpvjeBWqquGckp4pT4aCe075hg+IkIaJ63uJnK+ShIc4TV6/HSsH6kle3oJSA
+      tKzgbJh6H9DL0MkfBzuTvN3CerB6yvqe0YGvzp7olICqGTtAa/Rws30UKA3aV26d
+      6Wy9dN5Qe6zUl/JCl/jhae13RxCM
+      -----END CERTIFICATE-----
+    kubernetesCA: |
+      -----BEGIN CERTIFICATE-----
+      MIIDBTCCAe2gAwIBAgIILSC441ud4GkwDQYJKoZIhvcNAQELBQAwFTETMBEGA1UE
+      AxMKa3ViZXJuZXRlczAeFw0yNDEyMTQxMTM2MDdaFw0zNDEyMTIxMTQxMDdaMBUx
+      EzARBgNVBAMTCmt1YmVybmV0ZXMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+      AoIBAQDHDXNDKNOv/Ekc+6OtdDsR9P7vWE7DzBj3IEJpBARCTfDIigav+PFe4jS4
+      FDW2zEiDpL9xPzgCqVKCuplkb/gZKd7Km2wvO3u8bqo+jRQQ6Y+RCSsJsdLpk11U
+      hbNGQLusHQsibTQ5KVXmEbq1zGxy06goACEY+QaUXqAADSdIAyU/ytfKF+E3pCh8
+      YqiojWJr9jxu/K9i0Sgrl1IqIvNgQmcwGvUnXmQb3y5I7Z7lEoXmaC1rCBx4kJrU
+      4+VE2b9lBvV/b7Rpr7UXkDEp0lEREaOkbNUoS+W2Op2dQ2O4ip5K57Li5BENnL2X
+      DAkWzrFztHdVOyBVk5+P2NeRuU4PAgMBAAGjWTBXMA4GA1UdDwEB/wQEAwICpDAP
+      BgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBRsV6VkcbrKnWGVa9npGslN1IOdCDAV
+      BgNVHREEDjAMggprdWJlcm5ldGVzMA0GCSqGSIb3DQEBCwUAA4IBAQAGTlWZbLKD
+      Nko9eY9t6XuaBOsm48GARNfuyBs+qyPHtEeCDLdmeC1V8eP7Hb9zHZygiAIsx4aY
+      4k3HSBCFfP0k8Jz07rJqFIO9H9h3Bg3cx8C3Zauhc3rM2gL91GSwTE2D0+i0hZq/
+      Fh+V0nCY6vVeSRanYpiMxJcn3cp7iFvw1xT3HI2qRmamReIXMLmpgeMqlI0JQ51Z
+      NqKDILQzrKI+L79gGvvkkbOUpu17xMepZbzztzdOz0j10FrfxVIOVZVqjLx1XTKw
+      lmbtWZwDQmim63+JOjOKvWChgjqskDGstvyaMr33V18e+azo1f1NqF/UovVVlcuJ
+      4+8D0Sx8Vu7G
+      -----END CERTIFICATE-----
+    kubernetesVersion: 1.29.12
+    kubernetesVersions:
+    - 1.29.12
+    podSubnet: 10.111.0.0/16
+    prometheusScrapeInterval: 30
+    serviceSubnet: 10.222.0.0/16
+  enabledModules:
+  - priority-class
+  - deckhouse
+  - flow-schema
+  - admission-policy-engine-crd
+  - admission-policy-engine
+  - cni-cilium-crd
+  - cni-cilium
+  - local-path-provisioner-crd
+  - local-path-provisioner
+  - snapshot-controller-crd
+  - snapshot-controller
+  - registry-packages-proxy
+  - control-plane-manager-crd
+  - control-plane-manager
+  - node-manager-crd
+  - node-manager
+  - kube-dns
+  - cert-manager-crd
+  - cert-manager
+  - user-authz-crd
+  - user-authz
+  - user-authn-crd
+  - user-authn
+  - multitenancy-manager-crd
+  - multitenancy-manager
+  - operator-prometheus-crd
+  - operator-prometheus
+  - prometheus-crd
+  - prometheus
+  - prometheus-metrics-adapter-crd
+  - prometheus-metrics-adapter
+  - vertical-pod-autoscaler-crd
+  - vertical-pod-autoscaler
+  - extended-monitoring
+  - monitoring-custom
+  - monitoring-deckhouse
+  - monitoring-kubernetes
+  - monitoring-kubernetes-control-plane
+  - monitoring-ping
+  - descheduler-crd
+  - descheduler
+  - ingress-nginx-crd
+  - ingress-nginx
+  - log-shipper-crd
+  - log-shipper
+  - pod-reloader
+  - chrony
+  - dashboard
+  - upmeter-crd
+  - upmeter
+  - namespace-configurator
+  - secret-copier
+  - deckhouse-tools
+  - documentation
+  internal:
+    modules:
+      kubeRBACProxyCA:
+        cert: |
+          -----BEGIN CERTIFICATE-----
+          MIIBkDCCATagAwIBAgIUb5/j4oi+TFOjLs75KaBlDRs3FbowCgYIKoZIzj0EAwIw
+          JjEkMCIGA1UEAxMba3ViZS1yYmFjLXByb3h5LWNhLWtleS1wYWlyMB4XDTI0MTIx
+          NDExNDAwMFoXDTM0MTIxMjExNDAwMFowJjEkMCIGA1UEAxMba3ViZS1yYmFjLXBy
+          b3h5LWNhLWtleS1wYWlyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEJCtz30Nf
+          1RQf6nk9XFLEs5MlMLlU4Ocqo4PCOonqf73QdU0aQH5aScFyBJZrELrG8FHpEUGA
+          w/HA4a+PGsXTT6NCMEAwDgYDVR0PAQH/BAQDAgEGMA8GA1UdEwEB/wQFMAMBAf8w
+          HQYDVR0OBBYEFJ7stC97GlK25yCbkqJl627rI7poMAoGCCqGSM49BAMCA0gAMEUC
+          IQDrTNEgOVK2n/NWGMSCs0c2t640f6kXbAQB2lCM5kGazwIgDrYostJDWuOm02cu
+          ZgYIBh9GGO9WfF/mu4cKOK2rQrc=
+          -----END CERTIFICATE-----
+        key: |
+          -----BEGIN EC PRIVATE KEY-----
+          MHcCAQEEILfbze7tshAD3YvsMPv3W6D9ZvZ5sT7ISex9kSPccxyNoAoGCCqGSM49
+          AwEHoUQDQgAEJCtz30Nf1RQf6nk9XFLEs5MlMLlU4Ocqo4PCOonqf73QdU0aQH5a
+          ScFyBJZrELrG8FHpEUGAw/HA4a+PGsXTTw==
+          -----END EC PRIVATE KEY-----
+      resourcesRequests:
+        memoryControlPlane: 3221225472
+        milliCpuControlPlane: 1480
+  modules:
+    https:
+      certManager:
+        clusterIssuerName: letsencrypt
+      mode: CertManager
+    ingressClass: nginx
+    placement: {}
+    publicDomainTemplate: '%s.kind.elewise.local'
+    resourcesRequests:
+      controlPlane: {}
+  modulesImages:
+    digests:
+      admissionPolicyEngine:
+        constraintExporter: sha256:70b64eb5ef554e34a82ab9f85c08e8e4fe5eb6795f0c113b874901228e44242e
+        gatekeeper: sha256:64b1b3c50de4bcff4a877c79c823d4d5a3740d23b1c305388fe32c2c594fcda9
+      cephCsi:
+        cephcsi: sha256:f8f7fab55468d2217bf274b4ebbc9399454d5d4b56899ef0d2fd75a0a05c6f91
+      certManager:
+        certManagerAcmeSolver: sha256:edea1ec20040e8b4cebc93cadc2ff67d5c7bba882b03683b36b436bc9570bca6
+        certManagerCainjector: sha256:1b6a09d428c4abb99fb3b99f501537add3184a2fd02b06ff3c13df3905b1cd45
+        certManagerController: sha256:c7ee97af89bccd98af0ebedc4bd038250621ea87707079114b0ee07f66324ab5
+        certManagerWebhook: sha256:1731ce59f498d622c77910269caad9a625790c16f556763decf6e9d3b0f048f7
+      chrony:
+        chrony: sha256:d93b6f110d37ebc530248017b035875c8e7c6e1795ba92de83825be60c2ad6fb
+      ciliumHubble:
+        relay: sha256:56528d776da125c03464adc2a9cf3802a845f541520de5276357dbb07db58cc4
+        uiBackend: sha256:062a6e9055156fa28c50421897535de6f9c41d535101fda640d367361751b2d1
+        uiFrontend: sha256:6f42c2eaf2d19db57b2f102eb32dba2b412b4f9636e7856abbdaabce477a3c14
+      cloudProviderAws:
+        cloudControllerManager127: sha256:467f54243422b3eb59b451533f5ef8ee624393db38a1e1c1dd5b401652d1df11
+        cloudControllerManager128: sha256:bbae4db31de096dc9a0719145de27f4c5835f78ebec8a7a6dea0cf209d9b934a
+        cloudControllerManager129: sha256:089a8fe0b5d96318b9bc2651b1c7a656153ddb22ce83e4d8d27137f147840cf8
+        cloudControllerManager130: sha256:a0d2f1a2f22f791ca3c233fb983ec3cfb399982d3efb55c96fb693f75de2420c
+        cloudControllerManager131: sha256:164427023abea518945d76ecfe3f8789929feccfe153c750e3310b117541057c
+        cloudDataDiscoverer: sha256:dd89756bcf51b2d9d098c203964a27c4c3546ef662613866ced3bac00f3a10bc
+        ebsCsiPlugin127: sha256:514a3693aa67ee6e2a1098cd77a7ff8c9494b08199dbaf861170f77b93784d3d
+        ebsCsiPlugin128: sha256:514a3693aa67ee6e2a1098cd77a7ff8c9494b08199dbaf861170f77b93784d3d
+        ebsCsiPlugin129: sha256:056897c7806c6c105c92c1642fe4b71ca6052d34994d6c523743bbcaeb91a3e1
+        ebsCsiPlugin130: sha256:6d78d089ab2dcdff9150503678acb85a014d6b0b95f74495feddff1d390d1227
+        ebsCsiPlugin131: sha256:2cc068ff902562ade89e5f1a92bf2ceb4af4e0cb7dbfbc90ce222b253b0020a5
+        nodeTerminationHandler: sha256:9fc7bbd85169e9d69cdfc634706e85d261ffd4da6437f824244020f25e09e0bb
+      cloudProviderAzure:
+        azurediskCsi127: sha256:5a65042b26d7debf0c25ba972d23cdb2a3d43d5b359afdd7f75a4ea0355470a3
+        azurediskCsi128: sha256:5a65042b26d7debf0c25ba972d23cdb2a3d43d5b359afdd7f75a4ea0355470a3
+        azurediskCsi129: sha256:c4cea7a6da5dff0044f35a13f17d686bee266b6694ddbc7e42a91fb7173bce83
+        azurediskCsi130: sha256:9cc17232d1da28a58204bf9656a8b59519a967eff05f92aaf260ee49024737b2
+        azurediskCsi131: sha256:2933d9e9f75f7eaa667e64bf21e54a16dbc67cb1d40f9997d2c8db411e95c502
+        cloudControllerManager127: sha256:21d84a1ba6e76c923031f4942574e38133c5cd0e27aeff468d32bb22dee73154
+        cloudControllerManager128: sha256:f0469c2abdd23122ea859ff5fdfd5c2e6aa3edf10db30ca33c18d130c975db31
+        cloudControllerManager129: sha256:2b9beee0bf6f1679fe72e4590551a59451e4481331f4504bd545978ccb18a6b9
+        cloudControllerManager130: sha256:8cc3656b6f1f7454b6bdbe20c79429b49869267ce4202e3b0b478d4afadef614
+        cloudControllerManager131: sha256:ff5748bdf5afc729f2f76b3a7c9db751a13458b52ee4f198fa34440801f38c45
+        cloudDataDiscoverer: sha256:09ddc1d445534c1a5c5297e3feb7caa4bbb687bd5363325dc33f35255ae1ac70
+      cloudProviderGcp:
+        cloudControllerManager127: sha256:822dd62bdf21c87da32ce37bc52dfab56fbfc77f5aaefeb2d24f4d8f2e1f5be1
+        cloudControllerManager128: sha256:780273f32b28499973562c53ab5c38f522806a40b2aee3bd9b8fb962810562c2
+        cloudControllerManager129: sha256:3571e559f87f98d11537cbb2085f5a585113fc1cb007d1e461f3c019ba1910d5
+        cloudControllerManager130: sha256:b090f91369844e03f8ff7cee3866bca65ee200a53299327b7ebdaf78b82f8ae4
+        cloudControllerManager131: sha256:465dcc682f583bc90d67ee94ecfa0e77202f232bbf0f89f690393b9a043808f9
+        cloudDataDiscoverer: sha256:c2a1543368e3c57bccd538c249946bf2f6071754d89f6da597f2277781663c2c
+        pdCsiPlugin127: sha256:3131f7b941b4225d63882efe85afb1cce93cd9d9e936a6a85ff75b26e000e305
+        pdCsiPlugin128: sha256:3131f7b941b4225d63882efe85afb1cce93cd9d9e936a6a85ff75b26e000e305
+        pdCsiPlugin129: sha256:3131f7b941b4225d63882efe85afb1cce93cd9d9e936a6a85ff75b26e000e305
+        pdCsiPlugin130: sha256:3131f7b941b4225d63882efe85afb1cce93cd9d9e936a6a85ff75b26e000e305
+        pdCsiPlugin131: sha256:4a1c19d5398598432545f5f5fe080438d80c3f39367614f99f8788c78cb3a9d3
+      cloudProviderYandex:
+        cloudControllerManager127: sha256:93070e297afaeda0c8f04fb3cb0732ee59a6a2922107db98cfedaaffc8829459
+        cloudControllerManager128: sha256:93070e297afaeda0c8f04fb3cb0732ee59a6a2922107db98cfedaaffc8829459
+        cloudControllerManager129: sha256:421fd48ced2264bbaff0eabd1294acd3df1308aae759dec87152e84731fa7fb7
+        cloudControllerManager130: sha256:dc4c0ceca6da48401ca5a0e05c70d317a27bc3ba8ab9f47eabb05627edb9a87f
+        cloudControllerManager131: sha256:1c6f1e83451e8a70c27561958b6f7eb36d95f4892b02c8e4f1458c7919642779
+        cloudDataDiscoverer: sha256:91354438d6d39dd272ac8d4841c1e9a66bd2883f720d597ac0a48aad101bba7f
+        cloudMetricsExporter: sha256:a49e7c149a5f5a78d84dbf2098e6cdbb878e41dbbbe55b85449ef52523f8dd05
+        cloudMigrator: sha256:75455fe0c6f92196db0d9f66cd3f19bba936fc8072d3caf3133e1f06b12234ad
+        yandexCsiPlugin127: sha256:745845e6a9f2dee94cec23d5a6e728b6bce506fbd338b158835f31d16bcc756b
+        yandexCsiPlugin128: sha256:745845e6a9f2dee94cec23d5a6e728b6bce506fbd338b158835f31d16bcc756b
+        yandexCsiPlugin129: sha256:745845e6a9f2dee94cec23d5a6e728b6bce506fbd338b158835f31d16bcc756b
+        yandexCsiPlugin130: sha256:745845e6a9f2dee94cec23d5a6e728b6bce506fbd338b158835f31d16bcc756b
+        yandexCsiPlugin131: sha256:4c244f18d1e21a9b7d585050da968a662bbf2fa9e3a6d30a4265beb233b27c45
+      cniCilium:
+        agentDistroless: sha256:a24ff26eb3d234072d0adfbea730393cebaf3c5b1601abc39ab98e9b6eacf6bb
+        checkKernelVersion: sha256:1170f1d26a2a1b61b9ad70da00b88fbf10dd3fe4e2155ff12355b4462c1849bd
+        kubeRbacProxy: sha256:b75118ec19071b4198b05f63d2b1684ab3c196320775e1b62be50ef9f1bebd94
+        operator: sha256:0366c22c15889158ae7a1cd9069c2889f351a65ea12e905414df2fcc952757fc
+        safeAgentUpdater: sha256:d744c3debb54ce9850545332c66b2b00772b4beff331331f56279b1ab010e59a
+      cniFlannel:
+        flanneld: sha256:98b9971e139490c1344a011cadca60459565982cb002e2394017b270e0bcaf4d
+      cniSimpleBridge:
+        simpleBridge: sha256:ca1df5e3e4588cbaf62f3377ad588685dcce6f53782d635650b05ac61e4b0355
+      common:
+        alpine: sha256:2a8985e2d65f0fe186aa744ad42e12238e43b62310511a960285c8d142b09a92
+        checkKernelVersion: sha256:1fc6581396dadb393b9bcea603456a0189f82b3117d2125d86dc8bc7e3a8486c
+        csiExternalAttacher127: sha256:fcfadc2411ce7934513c890853470aa35768584d942a3bbd006b0c3b75e0f90d
+        csiExternalAttacher128: sha256:639be4dfd8634708dc99a12727a894815627036764f8ee408f1f75e8b481d650
+        csiExternalAttacher129: sha256:fd83514e78a301da7a2879efefbf6f5602dce75159451afc9c1fcf28d8ea078b
+        csiExternalAttacher130: sha256:96998e5cef5a25adddf997dd808ede4786f121d9fc556be3c29a60a4dc6b87f1
+        csiExternalAttacher131: sha256:4ba99e575b38eefdaa0294f55cfd78c824e09b0289f87601a027a8ef641e0735
+        csiExternalProvisioner127: sha256:d3af4fd2e4bee215cabe78d04d71150c1740811bdf18ba24bbda38cf4112e1c5
+        csiExternalProvisioner128: sha256:958aee9e98dd04ca02b445e5f83682993e89ab5f96ee874e0861c7fed2aa0a24
+        csiExternalProvisioner129: sha256:954dfac70d45985cad4199dcc0d169d1c811e71820c6699d1f3168707522d749
+        csiExternalProvisioner130: sha256:072eef34ae7c954d0f5d32ba27cf2a0fc5d3b9c9fc5002bc142989d6f817d4d6
+        csiExternalProvisioner131: sha256:8b67c0e3d6839ef3951abb1be9126416a6cca0950e038dadef51f2fcc3faed6d
+        csiExternalResizer127: sha256:096ee21e576f402c117e3bedf2f2319c2cdea969d4e946935381c460ade809fb
+        csiExternalResizer128: sha256:fbe7dd9b741266050fb42cc20a316beecf37dbb219591b97e22b951bfcbe86d0
+        csiExternalResizer129: sha256:02f80e92b0afcee0f994d4d167a5c688658d96a013ec151b64c757dae44b5b4b
+        csiExternalResizer130: sha256:e4e8ec34aa2f1849a71d9ba8e9902f754e8beb99bb20bdc9e450e6f7efcbff9b
+        csiExternalResizer131: sha256:5bbf7b002244443ffabef57726d857820a3617512e5dfa83fbe8c129b1632f7e
+        csiExternalSnapshotter127: sha256:f328ca809022036b01b8880514bcdd4663e60277f3c756d47be7c1ce79706c82
+        csiExternalSnapshotter128: sha256:f328ca809022036b01b8880514bcdd4663e60277f3c756d47be7c1ce79706c82
+        csiExternalSnapshotter129: sha256:c4d6bbc4aab6321fc7736bc2a677a46602500dd32f28cd385783582e4782cfd1
+        csiExternalSnapshotter130: sha256:f9e28291ea078634291338e340ce8f3db73ef528a1965f29ad388dd70233b00d
+        csiExternalSnapshotter131: sha256:dca452e186a833b26baa92fbcf0d6102a839d6b2fca70b34966e51e31b8386ed
+        csiLivenessprobe127: sha256:23db3701c1ca9dcd9ca481d357867166c49ae078439e7d5706dfc9f8fa14e4e5
+        csiLivenessprobe128: sha256:23db3701c1ca9dcd9ca481d357867166c49ae078439e7d5706dfc9f8fa14e4e5
+        csiLivenessprobe129: sha256:983f9ce913afc573cd496d7c4ebf9bdaef5890119a5e434951d315e95b162288
+        csiLivenessprobe130: sha256:f9934e26285fab4bf90732446bd054511a0dc9560e9dc30e3f9a18a301aa121a
+        csiLivenessprobe131: sha256:136bb93435c66c79c638a04aa894746f28a7dea92d3fb7c94b57505ce17c05d0
+        csiNodeDriverRegistrar127: sha256:215a43756eb43f239e852b08b33f128349df37d1d4ec772ef318d7e184b960f1
+        csiNodeDriverRegistrar128: sha256:212a036bfe7487917aa964c56a1d81ec5d368e101ed629d03ca6786a2bc6d7fb
+        csiNodeDriverRegistrar129: sha256:bd7db2109859c4224aad506f26cc9637d366e8e5c0218bd82e559ddcf04fc542
+        csiNodeDriverRegistrar130: sha256:52ba03038f9095e53c8f212eb75407ceef62a844307f743ce1dc9f9cf80d7527
+        csiNodeDriverRegistrar131: sha256:4f59aca2e9eaecd13bc52538419a9c5c0ca037562c45da2d5df43f81d1f263d9
+        csiVsphereSyncer127: sha256:e2496dd0e79d06e0d6cb545a65104549aeeb9f6e36acb9b681b021d654566e7a
+        csiVsphereSyncer128: sha256:369ea8f6dde9b93391414de7f70dbb091e4b6b95f8cc5afb361cec685f891c5a
+        csiVsphereSyncer129: sha256:ff78298432244dfc25a48907b97cedb7227cdf81fafcad1bde2c76893dbaa226
+        csiVsphereSyncer130: sha256:06599fbd239e64567d89c72e46a2c75e3686de26d841a9bfdeef2f305d96d4f3
+        csiVsphereSyncer131: sha256:f71c94bbf792ce463f974102a5d2d5f4880c0b381a5b40ccf6dd8e8fb19b4ad3
+        distroless: sha256:2264093acb04bb5cc72eef9fbe0c9dbf2d021f0120c75158038d12f24aa29f4c
+        init: sha256:640700118458ac89f16f1522bec02bf46320d9504329d0e63cdd74e8a80064b3
+        iptablesWrapper: sha256:5a32233bb12fb06de89768ae6e19147ef8e0ef528bebc4dd099670ac9f206563
+        kubeRbacProxy: sha256:be5f2073cdc86ccde91404e6afc0c2edf4eee40f37af067ba9bec3b8fce30d26
+        nginxStatic: sha256:671bc178a96ed251aa7e3d0317c34f389a6233ffbeb0e521758cdb2504402f94
+        pause: sha256:056e1a5f950f59e1be656b5c74559a8f87021cdd952b63d344baa43081cebd76
+        pythonStatic: sha256:e340a64353d080e5228f1aa23286904648a76eb1cff06365bc5b5165dcf31cd1
+        redisStatic: sha256:318ae94555afb789b71944841fbf13e56981b990a5995b3a14a2a35cd2fc0622
+        shellOperator: sha256:19fd92a16116f25eae886601f99c83fc42f33a4e1100172c57676ef7a030ffa3
+        vxlanOffloadingFixer: sha256:a980173460fb63d23f491cd507e9dffb70cde7c1c293b24ef3889735e0c10089
+      controlPlaneManager:
+        controlPlaneManager127: sha256:98d6d736aeab01fe98b77ef3cdc48c030cdbb2d33509b316097cb4d5975964be
+        controlPlaneManager128: sha256:a3e2058ff4d7ab3a3863e96a7ac4f1cf58b4ea04f5c6a8869a535cd6f9047c72
+        controlPlaneManager129: sha256:916c9e354589932d95825bcf27c8127239803b6c31f33c4f18a7384a0d97ae1d
+        controlPlaneManager130: sha256:4cd7d36225b2e1dbaaf87a2e49f0591cf7bf3f6e6d4ef284435dc60533dce51f
+        controlPlaneManager131: sha256:f6111b848fd3078cb9f1934e51bb5fe43fb43cbbd803b293d01af67e1de50b65
+        etcd: sha256:ac75137a6dd6e321267c7a852444577dfdc71c6d4a2f841217348bbd76c09963
+        etcdBackup: sha256:2712b2c704793d039885de66213fa8187da6f90b0477c20cc9619e0d1a6bb03d
+        kubeApiserver127: sha256:181d0df2fe64b08e19cf56c037289259faccd7a7a46583c0bdb78d353e20ac63
+        kubeApiserver128: sha256:a960be0b951c690ca91a24b74747701777d54339c0dba57afeb68f0576c2ceec
+        kubeApiserver129: sha256:360280e4b48b4cc6a973448cf612f3ad9643e90c4929f913a8e711fb99870a43
+        kubeApiserver130: sha256:7db683b6139af82a580347603b7e8b7b2ebce738885622204e48034365945355
+        kubeApiserver131: sha256:38d78a91cc896ce31217114985da5c1b3a48a40c0e4cbdf71f4288e0e0511f42
+        kubeApiserverHealthcheck: sha256:7972daef73db3796ba94c5cece4073f808f00c4f6703fdacc193b291cd54530a
+        kubeControllerManager127: sha256:675e6510e75f527747888925d8e32c66fdfbb994dbb1ad14c2ca1a3b80e1467d
+        kubeControllerManager128: sha256:6895fd7f5aaa263cb036db0e92dfc6496b32df9827f94bab1df589618518c459
+        kubeControllerManager129: sha256:ca6bb6b708b0ba8ac9515240c75743b5b196e5788b2900873a649a078c2d54ec
+        kubeControllerManager130: sha256:724da0bb15973449b2e39682d7eb5a57f1b0cb4280580d2a27583418c720befc
+        kubeControllerManager131: sha256:7f29b49f7e3f076bcbe1802552d6be46264fc5522fa1a222980d74166684e22e
+        kubeScheduler127: sha256:063b6f614197358a794b8458fe94f248db561ba1ec47e3247f2e4dc80fde0c08
+        kubeScheduler128: sha256:d4eb799dbde051a1964b78278b5d7c6e03c2cbac7d33bfdd1af8f32e69b5f994
+        kubeScheduler129: sha256:131c16fb914574076132d95f0a8549d7f6dd6adc46ce4844cd0635d0b834e6e1
+        kubeScheduler130: sha256:08dac8dd6024848e76c26238427d0bea6941f556527e1fd3b03cdfe4e7454b41
+        kubeScheduler131: sha256:cc375a52a7e25746d80ce3cc1ddff519c44282b81bdd60742a675996aa451161
+        kubernetesApiProxy: sha256:30d8540b71590acb8f333daf21c368e4679d9dc31cb02946ca42af4dbad487c7
+      dashboard:
+        api: sha256:1b9fb85ffa45deb5d1028fab0b2d18f618a759bd7b2c36a8e070b1999916d55b
+        auth: sha256:5350028136470bf416c8802208ba08443bf1a48e0c9472638bb7da1c0d0b05cf
+        metricsScraper: sha256:af1c2a23cfca60a7cdc50360b35dddfc60f5c9b73ce161643745d98057eb12b5
+        web: sha256:076c7326fe20a5bcbe028cac28e3e79b9ff8a17f400ed2e863cbcc5f1666fab5
+      deckhouse:
+        webhookHandler: sha256:2be136137137dd765c32c556c22c59bf6002dc87c871f7da00e7ad492e05ee8e
+      deckhouseTools:
+        web: sha256:6b3237cd53375a1ef5d38e29aedba81fa892ff1346222c4973479aa48002f416
+      descheduler:
+        descheduler: sha256:7eaae6755e6b497ac729097673a682330e7f9770a5ba71b892e0ee0584cd4bfe
+      documentation:
+        docsBuilder: sha256:16503c26bebfcff108b972daf464fb9da1e03b01a37bc16cdbbf4fe77f4d9993
+        web: sha256:5cefdd4fe6e9517cad87443320c6335dd43c960acb8c95b2a21f4e710afeccb9
+      extendedMonitoring:
+        certExporter: sha256:9886625a1f3ce482f756f3e91029c9bae40cdc4e5e469b6b22cf4c10202a889e
+        eventsExporter: sha256:fd0ae30998906dd6200a348c507d49018613400d4e4edee5452ea5d93c480c81
+        extendedMonitoringExporter: sha256:b7a555965949b3816595a4635746d40d11b15381ffaa43ddee57894d8d463b22
+        imageAvailabilityExporter: sha256:b75a7eb17e59a97f0bf4ccf69c51dbc09d5cbec345ba9e91f9e3c420f79f12fe
+      ingressNginx:
+        controller19: sha256:d1be58b6a9393f9d0e4a894d0eeda7ce2d9da5ad5ab8cd3e0c11f30a9fb9a9a4
+        controller110: sha256:cbc0016272837e149b6f9b8eb2c9298d789004642ce56f8b3c245289ba7e3a26
+        kruise: sha256:ced79dceb72baaca39494c0afdcbc1a4bc7251d1be5af2e567446e12e875509f
+        kruiseStateMetrics: sha256:024045abf0ac155a9e53d5bc758f6b78570c49f4c71f73c30b4f12171a4f385d
+        kubeRbacProxy: sha256:e1e09e15414fceea9165c717efb71e4604390226712399f692ed2e15e486d87f
+        nginxExporter: sha256:c150a1ebe3cea3cd2c0a84c0bb07a72c7f6436c18ab349cd000a2c9d2c47ff68
+        protobufExporter: sha256:b2be0183f72124d742501fa35e972dece330c63f36ac77639e7ec0fa39f7c827
+        proxyFailover: sha256:74aa8e13d961cfd52712fe2a1168dfe71c49e8aaae76841da716390c8a52e6ba
+        proxyFailoverIptables: sha256:5e11db23989d034ff95c905639a0db7810d0c24ad608e3cced99757ef1037dca
+      istio:
+        cniV1x19x7: sha256:83aecc34fff5aadc953605ba29ad46f5d29ee6ca9606bfdb222b4612b4f59e77
+        cniV1x21x6: sha256:3316ceb06ec31d5c61d92d29ac778822a8a97b158772a9c907e14a8375137ecb
+        kialiV1x19x7: sha256:3a4f75a0b5c47a26b293f2e0f20fb5139d6b7a594f76eeeb1fec82a420a0bb87
+        kialiV1x21x6: sha256:ef22da05023bb638ec50b8dd570f8b2b3d9dcbfce3bdcd49dc2692fe90f4cb22
+        operatorV1x19x7: sha256:0fe66881c0a9dbeb2d164465682047923abf4e68476c224ab86b2b8bf21e21a9
+        operatorV1x21x6: sha256:43284f1173dbcb3c63d3fd9c2ebc2f66ae5f918ee856c86a15485bb4f641a034
+        pilotV1x19x7: sha256:619aaa860d7d86225c35b296f265a6f1ce92ea4f8c7496fa209c07ce40a7fcfa
+        pilotV1x21x6: sha256:817a767e01b16cc65e4c83ac0f68b034a7da2089b24084baa18af17997e76ad4
+        proxyv2V1x19x7: sha256:f8c151c8c1ea906fa28957c49fd9652650f9eebbea8a33d737cfd2bdde1f6746
+        proxyv2V1x21x6: sha256:47f58b7600628a01b0bfa33427c0c7ea135b71c7fd8ba59fb9cf93c36c82f547
+      kubeDns:
+        coredns: sha256:be434f3435164da8ccc9b9946f51c844cc5fbf11145fd88011bf62099f213115
+        stsPodsHostsAppenderInitContainer: sha256:cfa0c97000f1f81f85c4a51972684a333a2da9206cfaca37ba0ea020f083b39e
+        stsPodsHostsAppenderWebhook: sha256:2a3a5653745278be7b8b1436be264be7f8ba43f513e9512366aa56f095d10a6b
+      kubeProxy:
+        initContainer: sha256:ba8ec65956fb60ca896fd963d36827d4a98b705bd140b3345e327caa153dba39
+        kubeProxy127: sha256:37208c7d21badc7cd3d2a6a676ea82263b3fa1ff25c71424e74f4fd0e8a18c39
+        kubeProxy128: sha256:2293e56db93395d1c89e58b3436ca37dd3090bf2f98dfa2c1c0a0e349e00129e
+        kubeProxy129: sha256:e0492b81e3df398105c7d78429000230254389d3d2873d6f3c9914b7b3fae9d8
+        kubeProxy130: sha256:17c1ea56e66d5d78f8643c345d905c94635124003f7a5efeb034f603ffbbaa04
+        kubeProxy131: sha256:2c7d39124d4760945f8614005d372a94ff4abae9b06351e70531c3ffe598bf3e
+      localPathProvisioner:
+        helper: sha256:7987c0bb76e804278fd682f842d9345bcda28102d588e488c356428673542f74
+        localPathProvisioner: sha256:542f1a63b0985cc74385c5093c5a2c6624ae34c1f64065ea9beca51f1c4f3db2
+      logShipper:
+        vector: sha256:f6188c7f9775cb33dd1445504f13250b611bf8398356b0d6b72e378ae1c78fad
+      loki:
+        loki: sha256:5c5fc5146242669598c6cf981b6a5f7792a7ea9eb0693c1a5a2a89ff9fbaf6d8
+      monitoringKubernetes:
+        ebpfExporter: sha256:319a8fdb86eaa2ca1448e7817d416d67b66a72b237c56dfd5c498f181e3336eb
+        kubeStateMetrics: sha256:13d776e30e33c353ba463e606fc1942a0dc8aab473c39486443b7e657ef7ae81
+        kubeletEvictionThresholdsExporter: sha256:5ad0f18542709e74a792dce4cc2249c5eb3531c4df44f02851c4f3c1c7b572e2
+        nodeExporter: sha256:4cf125b1d8551c50554c7c6e0d0f4a28e11f58ee6a612e05ebde923003e8acf0
+      monitoringPing:
+        monitoringPing: sha256:80ea82333562ffb1d5b7fbe78530bc2c46bf768357cb142a66df4bd3b8315009
+      multitenancyManager:
+        multitenancyManager: sha256:519823189b9c9df23150022f5e37249f7c1892da2cb40d39461c006533d29a93
+      networkPolicyEngine:
+        kubeRouter: sha256:112b66541fa887ef2c15189e142b569b167f7483a227b2b6656a1102f71db714
+      nodeManager:
+        bashibleApiserver: sha256:70cd8d04a0780a88b43979d3f476de20106c3540992f60a6b8ed5e185f8d3096
+        capiControllerManager: sha256:066977b97e9616fdb36473916f69d0242dcb501edfeeb4c1e569b8c6c6030199
+        capsControllerManager: sha256:c28ffec4e982e52ad42110edfe4c642f87cec35eefe1461c55ef97a379b66211
+        clusterAutoscaler127: sha256:ee692d04d846db7c77a2428e11132b45e4dfd454b87cc3a5c0cce350b8fd2cd5
+        clusterAutoscaler128: sha256:c6187fff4b6fa7a96e8b5d444988bb48d0b41dc963a3be820aba013e1f55b6f5
+        clusterAutoscaler129: sha256:53b79c07a893f6f399623a1ef5a90081d60f256ea18e745c184f2acf3caad5db
+        clusterAutoscaler130: sha256:e24e248749ea908d69f69dc64a0466c9acd8b74f64d8e73ab18f78a8d8069c92
+        clusterAutoscaler131: sha256:e24e248749ea908d69f69dc64a0466c9acd8b74f64d8e73ab18f78a8d8069c92
+        earlyOom: sha256:07a81044ea42445782494ae005a31ad6ee94a2971cc66c8ea3ffcf059579b8d4
+        fencingAgent: sha256:7cbc62f7a631419bda26ba13c1d7cdc82477f80b96f9a8fb55eb33088dfadbb7
+        machineControllerManager: sha256:9ae437bb09cf97cd9df45efd6b3e9ac6e7d0af666761044d6d99384de6adf601
+      openvpn:
+        easyrsaMigrator: sha256:f83d4d70f5f8f6e326e97c90a0960ab3d831b3c173fb65c65988cb7f6001db9b
+        openvpn: sha256:7a9fdf2aeb2540e83aa5f591b71c637c81cc045b3ab33c858f178dfbec9d4ae7
+        ovpnAdmin: sha256:60d8848fe50778716db28fb9d4404cd082e761ad5fa981f276b1d6adb02ee3b7
+        pmacct: sha256:086b1d8ca4630e21afb44a023d26ab2aac7ddd0d31227b185868df9d90814d63
+      operatorPrometheus:
+        prometheusConfigReloader: sha256:75491255e3b9c1ea44d0cf146f4df59801c1c680228a3d0be77684d455c3b075
+        prometheusOperator: sha256:fc0e3645cc1817dc33bdb6eb9c7278039b6d398b6ef0265f60e6cf7243a08ebc
+      podReloader:
+        podReloader: sha256:0b600a1067a8c4400d77481b4cc3600c2f5155476f34197a12e9ba6c7468cec1
+      prometheus:
+        alertmanager: sha256:8d1f842b5d04e14c8bbae2989a933754e59cf2967ed385ba28d436768890085f
+        alertsReceiver: sha256:34f01a12f677a697795d6dedf7650b27a419524e53967367f7ed7412b504314d
+        grafana: sha256:fd5d4c2482ee9a123eb2d56afe0d462925e12e62dd3b3b1811b52fd395bfa22f
+        grafanaDashboardProvisioner: sha256:d12e2ff86725be9105d521dcf92812fe1be3479bf47ff15afffb946cadd4efe4
+        grafanaV10: sha256:b305c4e3f62d05e4d7a34152dd2b0940e9bbd3086a5249c9621a2faf42a6bb8a
+        memcached: sha256:459f5d112c5740dd9f55fb7a9d8ef69e7ce369d4fefad5799b9b57e13a2f9a87
+        memcachedExporter: sha256:952fbcba8838d1e89e3d189013322ffa7a6efcbe914a9ba9c270f13c49fd698a
+        mimir: sha256:c01a3413ee751804b822f67e87ae6ca24ac7c1807abda4933c145bdccf38f701
+        mimirSrcArtifact: sha256:091b31a6330de281c1d1cd4de85fe237613c5433794df0e2945aee50838f1265
+        prometheus: sha256:9d0b6a437f9640e24bca28b519b2547f17811b1c3d381b26ff5c10f502e1033f
+        promxy: sha256:4950581897fed534977d1f64cdc022aed7238bde3db4a7a7f4fbd393579a7a27
+        trickster: sha256:4e9420411b98585f8f984f3ca9925eaa5f9c1ca77093eb9d5749e98d12b39031
+      prometheusMetricsAdapter:
+        k8sPrometheusAdapter: sha256:f3c3e6cfeb0dd81ac2fff601ab01ab4efdbf7574d19277e4e9c4c1cb9e361f04
+        prometheusReverseProxy: sha256:8a8a414e0861511d3eee702b32f092483c271720c20f523484a518b1f37a7e62
+      prometheusPushgateway:
+        pushgateway: sha256:abb1708231b629a5e27667e6a3adbf7bc5f93af20936697a09630ea822bc2b6c
+      registryPackagesProxy:
+        registryPackagesProxy: sha256:792c39f7d3ac6df669d32093bc737c474f4a98bb181cb57692e662da519613f7
+      registrypackages:
+        amazonEc2Utils220: sha256:cfeb0e3378e20fc4f3298b2535996a7c57f43f04ef441c248a286d03fe8a4dec
+        containerd1724: sha256:89d63c7b026ce4b3dcfec4694b1b3dd9cf70a199cbb1476d2ea129cbda430377
+        crictl127: sha256:641ba2c57573d9bd101b69bcb8db7e0fb278d8ad2aa5f9d174ab5519824df87a
+        crictl128: sha256:e86494e86de66aec2320a4bd3d88f2f54bd3574f5fc29fb33d37d7ac2e32b921
+        crictl129: sha256:0f3dd33abf501ab4b1f3df539ae3093888cc1089bf1ba1cc8c011dcf891f6410
+        crictl130: sha256:da7e155a59683be211fd8878c53082c15aae2a3753cfc894c9f8c705e6e14295
+        crictl131: sha256:4f424545fdbc52ee1ac7c6bb7420a441d41248f03b34ac668aa9c7f2c607d28a
+        d8: sha256:ebc2ae29dd8b4f5960e8f55ebdb10073d39aef70167273a7b654a7a4ea50df16
+        d8CaUpdater060824: sha256:c58cbe99bdbfa0e15687922b339e80b35fcddf2289de33ded368283bc85fb59d
+        d8Curl821: sha256:a3ac65f1fdbe8f6486045175f1cdf3f51d342c8ab8b59330e6da7c1bf098a0af
+        dockerRegistry283: sha256:01dcb8213ca9eeb5fee448e5ec760c62709d960339e5c724aef8cce1736f38ad
+        drbd: sha256:d4ec39bb86c058669e030f8b938067762f42e63786355ea5306e1ee3c2eadb27
+        e2fsprogs1470: sha256:d32d22420b8d4163a5c85ec9afa1fbc5ef81df8a4c828e1b10d754445227b458
+        ec2DescribeTagsV001Flant2: sha256:933ba1b2baa846add6b9ebf6d707e6ccf31de6f0bc0b38a9937bee79e1c00f15
+        ecrCredentialProvider127: sha256:2d44ff8c91ba854971f2c79e07acdf099c48049425f3e3d77318a95e9f1e32eb
+        ecrCredentialProvider128: sha256:90fb3c446b87815b794ccddd6c3f7a5462261d8177fcf0a02e9a9e90b57b2f26
+        ecrCredentialProvider129: sha256:a149f3695b0cfb24e1d325cab4013964e4d0134f2ca8ce9c9b0ecc60ede9fd79
+        ecrCredentialProvider130: sha256:80056736b8e790dda3ec0bdc18b8921f36f596961c59f8dc1997ca9b25069a37
+        ecrCredentialProvider131: sha256:40f428bd5bcbcf7dd419f233e710de89403ae3e79881a3114efce2381adddd08
+        growpart033: sha256:62de8bc29ba4d6e24beaa0bb7b1f81a971d89cebfa3c0bb8ac4ca11f9ae45d4d
+        iptables189: sha256:ed79e359f2a57267b274a3e46493b856e95b8a555df40573bacfb42930e29ea7
+        jq16: sha256:5a18fce2784a39db258dc2578b02a4e4e58d8aa19cf0814db7257ce764ea6bea
+        kubeadm1308: sha256:2b3e253db1dc4ae5ae716b3da210624842225c03e31cc4562b0ffc7126743563
+        kubeadm1314: sha256:e10e6e3d88926efdd9291c300367e2f147b2f1806f342019a899e17d29843630
+        kubeadm12716: sha256:d739c82240b16c9a5610146ed09f98b9389403e193205003bad5cdcd269c4b9c
+        kubeadm12815: sha256:8cc21690b4ddb87c41f9b8d6c13a96a5b757d4d62918c079f9454d7023c7c335
+        kubeadm12912: sha256:9cb8f587585d154d353bf3e8d80a32933247a7bbe820bd80c301b26ccfcdc364
+        kubectl1308: sha256:8e2a9adbcfc953bf9d6529d796828cd8ee5693cb9a752bb69effaa84e189d091
+        kubectl1314: sha256:9b68d2a2f052c1a63811a84b8f05deccde9a5589bb9693a5b3d23cf9ac5d2e6f
+        kubectl12716: sha256:d3e5296a88fab365fedddd981243981015e6677543ebb4f7d4c953cc77eea72f
+        kubectl12815: sha256:736660310bdf1041c9f22ec24908e525989847ebb3d331a765650f7208f30dc1
+        kubectl12912: sha256:8b9e3fef7fbc3aed9d05688d6d112024c858139e4e0cd55155286d0636ca3623
+        kubelet1308: sha256:8828712d5dc7f0dadf63e8c4173b00c235f79a516fb43e232615c9fa69d3c67c
+        kubelet1314: sha256:b5aec9218e7a9517a2337b73a48d66ea166d6aa24fff5467dfa3812412bdfdca
+        kubelet12716: sha256:89d9bb23f99cd82070e10938cd6414f5c27300948804fd14f13aa81133e1492b
+        kubelet12815: sha256:6e39de5788328309a97cb873e361892d13523b786e7caf5a39c0598a905cc935
+        kubelet12912: sha256:180610d81a483281b89e241c3471f88ed8ca2f6a3c6da25f0a67887cce17d5d3
+        kubernetesCni140: sha256:9abbe8b04b1e33ba1544e940cd54b2022ce069c19c21e77b80fe2ea179aeac45
+        lsblk2402: sha256:ac0c8daa05f4ff9af18fdd296cee0fa8a43491e6dfbcc0d1cc37142914325735
+        netcat110481: sha256:84063cb28a4f2470605566532bd7b2e5b68cb07e06186a081ac8669b873befdc
+        nvmeCli211: sha256:c629e5ac1d4b3271f80a4d52f2a62df20e265bb8fcbe1713e0a35afbc867c741
+        socat1734: sha256:609514c787f2d5fd6ed971e7540dbd5cf9a8761751515b93475fbb7858782680
+        tomlMerge01: sha256:d7ca9b3151d8c13dd9f1dcfad92953057f43a26965a15359be895be362d84530
+        virtWhat125: sha256:def0726629abe2ccae1e221ff375195ca439ca502fc76373578050cd44114d98
+        xfsprogs670: sha256:edb3082b1e1e1f7f6b2fdead2614958d5daca26e4c213d06635feecf2c7a4097
+      secretsStoreIntegration:
+        csiSecretsStoreDriver: sha256:bd3635a253f69bc45e0c818e52932e8ea6b69fe454e8778c3ddcc5f00a3b3982
+        envInjector: sha256:9d7fbf2cd6d6c2b468a0eb6d2a22d50e5d09400b23e2548cbe8c9c429c12f2ef
+        vaultCsiProvider: sha256:e4655c0282a9ac355b89e8d94a72d191a040494acee9f58895f912310d181d6f
+        vaultSecretsWebhook: sha256:81dde1ca33fe2dfba0b70016ac3cb977b487153bdc97de04dc444589505899d3
+      snapshotController:
+        snapshotController: sha256:23422fc7ae33c6f14eb565840ca158965f9ed33f88095ac17589b4d0ed78726a
+        snapshotValidationWebhook: sha256:1d7261a8e1531964fe135173866fb4fc8fba1feb0f6e93c0e5170e574abeb820
+      terraformManager:
+        baseTerraformManager: sha256:319c75140f14f33fe165ae7268a0f4c907b195c8f6e23928ff1b07fea87d893e
+        terraformManagerAws: sha256:d8f9a416d23a312c51dd3a4549e0ead6267a853a255005ca6406ed4169640916
+        terraformManagerAzure: sha256:6e597f5e2c912cb3bb8a6448919fa5af73ba77a3d366fd161df7a8d8c156f569
+        terraformManagerGcp: sha256:05ed635989e4eb66884b774d0c92bc0dd40b003fa26f3025dde782b9df2f74fb
+        terraformManagerYandex: sha256:c3a141eec79d04f9c2881af4bb394f1a22ac69b1cce76e0a607c46f45aa6de34
+      upmeter:
+        smokeMini: sha256:d0e60ae102417cce9eda1ba4d4e1a54a5b420792a151e38e3f659fdee93ea94e
+        status: sha256:9f0374274e8cd6b08a386348e6ee04f0ad223d440b338246805250c875419be0
+        upmeter: sha256:0f19f72be3e9da5e9620bd5c051b09787355282bb7076c46123ed77b8091bf91
+        webui: sha256:1cd79d1a98bfa66781ffea58bb3b2ac931dd88ea7dbbb28e0b36611ecff1cc85
+      userAuthn:
+        basicAuthProxy: sha256:6d630eb635c357e19d5ec1b04f5ce0e1f96ac6d8e6a25211019b756519182947
+        dex: sha256:735b3349fb41ecadc3e7a48113e4abd8db4cfc539c72851127354dd887c31cc9
+        dexAuthenticator: sha256:6a3b808fa4d10bc23b07ec7add0f6ad0e23f99333f29a4d664b19c5b4bd2006b
+        kubeconfigGenerator: sha256:4853f1f8b013b80daea14f1fb3d53ec7714e56cc6c87b17ad51abcd581ae8d60
+        selfSignedGenerator: sha256:0150bc6b020f683723381507648b873cd33ee2daa42b78e9151279f7e831f194
+      verticalPodAutoscaler:
+        admissionController: sha256:53ae7846ff54afcbf72ca76e04acabb2645b478729474448d085cbda74957b0b
+        recommender: sha256:049e617a3fd4938123fc30d27f24f338e6c881c19d56bb3602d6ee8ab9feced3
+        updater: sha256:6487e735bdd03bcb46e92c7b009c2aa811ef799692679220ae24d9a65130b944
+    registry:
+      CA: ""
+      address: registry.deckhouse.ru
+      base: registry.deckhouse.ru/deckhouse/ce
+      dockercfg: eyJhdXRocyI6IHsgInJlZ2lzdHJ5LmRlY2tob3VzZS5ydSI6IHt9fX0K
+      path: /deckhouse/ce
+      scheme: https
+    tags: {}
+monitoringDeckhouse: {}

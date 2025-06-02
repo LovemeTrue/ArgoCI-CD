@@ -1,7 +1,9 @@
 # === config ===
 DBS_MSG ?= обновление параметров БД
 REPO_URL = https://github.com/LovemeTrue/ArgoCI-CD.git
-
+PATH_TO_SSL_KEY=/home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/kind.elewise.local.key
+PATH_TO_SSL_CRT=/home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/kind.elewise.local.crt
+PATH_TO_PEM=/home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/rootCA.pemrootCA.pem
 # === targets ===
 
 .PHONY: help
@@ -23,7 +25,28 @@ clean-argocd:
 	echo "🛑 Скейлим все deployments в namespace=elma365 до 0..."; \
 	for d in $$(kubectl get deploy -n elma365 -o name | grep -v "argocd"); do \
 		kubectl scale --replicas=0 $$d -n elma365 || true; \
-	done; \
+	done; \         
+# Удаление и создание ns + лейблинг    
+	kubectl get namespace "elma365" -o json \
+	| tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
+	| kubectl replace --raw /api/v1/namespaces/elma365/finalize -f -
+
+	kubectl delete ns elma365
+
+	kubectl get namespace "elma365" -o json \
+	| tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
+	| kubectl replace --raw /api/v1/namespaces/elma365/finalize -f -
+
+	kubectl create ns elma365
+
+	kubectl label ns elma365 security.deckhouse.io/pod-policy=privileged --overwrite
+
+# Создание секретов
+	kubectl create secret tls elma365-onpremise-tls --cert=PATH_TO_SSL_CRT --key=PATH_TO_SSL_KEY -n elma365-dbs
+	kubectl create secret tls elma365-onpremise-tls --cert=PATH_TO_SSL_CRT --key=PATH_TO_SSL_KEY -n elma365
+	kubectl create configmap elma365-onpremise-ca --from-file=PATH_TO_PEM -n elma365
+
+
 	echo "🧨 Удаляем старое приложение $$APP_NAME из ArgoCD..."; \
 	argocd app delete $$APP_NAME \
 		--server cd.apps.argoproj.io \
@@ -155,7 +178,7 @@ cleanup-old-apps:
 
 
 .PHONY: release-full
-release-full: clean-argocd release gen-apps cleanup-git cleanup-old-apps
+release-full: release gen-apps cleanup-git cleanup-old-apps
 	@git add $(APPS_DIR)
 	@git commit -m "♻️ Очистка старых версий, релиз $(VERSION)" || echo "🟡 Нет изменений"
 	
