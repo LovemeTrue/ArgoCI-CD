@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: elma365-2025 -4 -2
   namespace: argocd
+  finalizers: []
+
   annotations:
     # argocd.argoproj.io/sync-wave: "1"
     #argocd.argoproj.io/depends-on: "[elma365-dbs]"
