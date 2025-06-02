@@ -1,9 +1,0 @@
-apiVersion: v2
-appVersion: 0.1.0
-description: ELMA365 api gateway
-home: https://git.elewise.com/elma365/main
-name: main
-sources:
-- dreg.elewise.com:5005/elma365/main
-type: application
-version: 0.1.0

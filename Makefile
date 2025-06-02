@@ -49,7 +49,7 @@ release:
 	@git push
 
 AAPPS_DIR := apps
-DASHED_VERSION := $(subst ., -,$(VERSION))
+DASHED_VERSION := $(subst .,-,$(VERSION))
 
 .PHONY: gen-apps
 gen-apps:
