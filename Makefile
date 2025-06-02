@@ -49,16 +49,12 @@ PATH_TO_SSL_KEY := /home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ss
 PATH_TO_SSL_CRT := home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/kind.elewise.local.crt
 PATH_TO_PEM := home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/rootCA.pemrootCA.pem
 release:
-	@echo "Создаем ns, labeling, ssl secrets"
-	kubectl create ns elma365
-
-	kubectl label ns elma365 security.deckhouse.io/pod-policy=privileged --overwrite
-
-# Создание секретов
-	kubectl create secret tls elma365-onpremise-tls --cert=PATH_TO_SSL_CRT --key=PATH_TO_SSL_KEY -n elma365-dbs
-	kubectl create secret tls elma365-onpremise-tls --cert=PATH_TO_SSL_CRT --key=PATH_TO_SSL_KEY -n elma365
-	kubectl create configmap elma365-onpremise-ca --from-file=PATH_TO_PEM -n elma365
-
+	echo "🧨 Удаляем старое приложение $$APP_NAME из ArgoCD..."; \
+	argocd app delete $$APP_NAME \
+		--server cd.apps.argoproj.io \
+		--cascade=false \
+		--yes || true
+		
 	@echo "🚀 Выполняю выпуск версии $(VERSION)"
 	rm -rf $(VERSION)/elma365 $(VERSION)/elma365-dbs
 
