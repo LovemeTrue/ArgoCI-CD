@@ -1,0 +1,308 @@
+elma365-dbs:
+## Выбор устанавливаемых БД.
+  global:
+    postgresql:
+## Установка postgres
+      enabled: true
+    mongodb:
+## Установка mongoDB
+      enabled: true
+    redis:
+## Установка redis
+      enabled: true
+    valkey:
+## Установка valkey
+      enabled: false
+    rabbitmq:
+## Установка rabbitmq
+      enabled: true
+    minio:
+## Установка minio для S3 хранилища.
+      enabled: false
+    elasticsearch:
+## Установка Elasticsearch (Включается для ELMA Bot)
+      enabled: false
+## Настройки БД postgres
+  postgresql:
+    auth:
+## название БД
+      database: elma365
+## пользователь
+      username: postgres
+## пароль БД Postgres
+      postgresPassword: pgpassword
+      replicationUsername: repl_user
+      replicationPassword: repl_password
+    primary:
+      persistence:
+## размер хранилища данных (PVC)
+        size: 30Gi
+## если не определено, используется StorageClass по умолчанию
+#        storageClass: "-"
+      extendedConfiguration: |
+        listen_addresses='0.0.0.0'
+        max_connections = 2000
+        max_locks_per_transaction = 512
+## Включение контейнера инициализации, который изменяет владельца и группу точки монтирования тома на `RunAsUser:fsGroup
+    volumePermissions:
+      enabled: true
+## адрес и секрет для приватного registry образов контейнера инициализации
+#      image:
+#        registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#        pullSecrets:
+#          - myRegistryKeySecretName
+## cluster Mode - раскомментируйте следующие строки
+#    architecture: replication
+#    readReplicas:
+#      replicaCount: 2
+#      persistence:
+## размер хранилища данных (PVC)
+#        size: 100Gi
+## если не определено, используется StorageClass по умолчанию
+#        storageClass: "-"
+#      extendedConfiguration: |
+#        listen_addresses='0.0.0.0'
+#        max_connections = 2000
+#        max_locks_per_transaction = 512
+#    replication:
+#      synchronousCommit: 'on'
+#      numSynchronousReplicas: 1
+#      applicationName: replication
+## адрес и секрет для приватного registry
+#    image:
+#      registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#      pullSecrets:
+#        - myRegistryKeySecretName
+##
+## Настройки MongoDB
+  mongodb:
+    auth:
+## пользователь
+      username: elma365
+## название БД
+      database: elma365
+## пароль БД
+      password: mongopassword
+## root пароль БД
+      rootPassword: mongorootpassword
+      replicaSetKey: replicapassword
+    persistence:
+## размер хранилища данных (PVC)
+      size: 10Gi
+## если не определено, используется StorageClass по умолчанию
+#      storageClass: "-"
+## Включение контейнера инициализации, который изменяет владельца и группу точки монтирования тома на `RunAsUser:fsGroup
+    volumePermissions:
+      enabled: true
+## адрес и секрет для приватного registry образов контейнера инициализации
+#      image:
+#        registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#        pullSecrets:
+#          - myRegistryKeySecretName
+## cluster Mode - раскомментируйте следующие строки
+#    architecture: replicaset
+#    replicaCount: 3
+## адрес и секрет для приватного registry
+#    image:
+#      registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#      pullSecrets:
+#        - myRegistryKeySecretName
+##
+## Настройки rabbitMQ
+  rabbitmq:
+    auth:
+## пользователь
+      username: elma365
+## vhost
+      vhost: elma365
+## пароль
+      password: rmqpassword
+    persistence:
+## размер хранилища данных (PVC)
+      size: 5Gi
+## если не определено, используется StorageClass по умолчанию
+#      storageClass: "-"
+## Включение контейнера инициализации, который изменяет владельца и группу точки монтирования тома на `RunAsUser:fsGroup
+    volumePermissions:
+      enabled: true
+## адрес и секрет для приватного registry образов контейнера инициализации
+#      image:
+#        registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#        pullSecrets:
+#          - myRegistryKeySecretName
+## cluster Mode - раскомментируйте следующие строки
+#    replicaCount: 3
+## адрес и секрет для приватного registry
+#    image:
+#      registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#      pullSecrets:
+#        - myRegistryKeySecretName
+##
+## Настройки Redis
+  redis:
+## Параметры конфигурации мастера
+    master:
+      persistence:
+## размер хранилища данных (PVC)
+        size: 5Gi
+## если не определено, используется StorageClass по умолчанию
+#        storageClass: "-"
+## Параметры конфигурации реплик
+    replica:
+      persistence:
+## размер хранилища данных (PVC)
+        size: 5Gi
+## если не определено, используется StorageClass по умолчанию
+#        storageClass: "-"
+## cluster Mode - раскомментируйте следующие строки
+#      replicaCount: 3
+#    architecture: replication
+#    sentinel:
+#      enabled: true
+#      quorum: 2
+## адрес и секрет для приватного registry sentinel
+#      image:
+#        registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#        pullSecrets:
+#          - myRegistryKeySecretName
+## адрес и секрет для приватного registry
+#    image:
+#      registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#      pullSecrets:
+#        - myRegistryKeySecretName
+## Общая конфигурация
+    commonConfiguration: |-
+      maxclients 20000
+## Включение контейнера инициализации, который изменяет владельца и группу точки монтирования тома на `RunAsUser:fsGroup
+    volumePermissions:
+      enabled: true
+## адрес и секрет для приватного registry образов контейнера инициализации
+#      image:
+#        registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#        pullSecrets:
+#          - myRegistryKeySecretName
+##
+## Настройки Valkey
+  valkey:
+## Параметры конфигурации мастера
+    primary:
+      persistence:
+## размер хранилища данных (PVC)
+        size: 10Gi
+## если не определено, используется StorageClass по умолчанию
+#        storageClass: "-"
+## Параметры конфигурации реплик
+    replica:
+      persistence:
+## размер хранилища данных (PVC)
+        size: 10Gi
+## если не определено, используется StorageClass по умолчанию
+#        storageClass: "-"
+## cluster Mode - раскомментируйте следующие строки
+#      replicaCount: 3
+#    architecture: replication
+#    sentinel:
+#      enabled: true
+#      primarySet: myprimary
+#      quorum: 2
+## адрес и секрет для приватного registry sentinel
+#      image:
+#        registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#        pullSecrets:
+#          - myRegistryKeySecretName
+## адрес и секрет для приватного registry
+#    image:
+#      registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#      pullSecrets:
+#        - myRegistryKeySecretName
+## Общая конфигурация
+    commonConfiguration: |-
+      maxclients 20000
+## Включение контейнера инициализации, который изменяет владельца и группу точки монтирования тома на `RunAsUser:fsGroup
+    volumePermissions:
+      enabled: true
+## адрес и секрет для приватного registry образов контейнера инициализации
+#      image:
+#        registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#        pullSecrets:
+#          - myRegistryKeySecretName
+##
+## Настройки minio (S3 хранилище)
+  minio:
+    auth:
+      rootUser: elma365user
+      rootPassword: SecretPassword
+## бакет ELMA365
+    #defaultBuckets: s3elma365
+## дополнительные бакеты включаются для ELMA365 + ELMA Bot
+    defaultBuckets: s3elma365,elmabot-omega-models,elmabot-bot-static-files,elmabot-bot-temporary-files,elmabot-analytics-report-files,elmabot-conversation-export-files
+    apiIngress:
+## указать ingressClassName
+      ingressClassName: ""
+      extraHosts:
+        - path: /s3elma365
+          name: master.elewise.local:9000
+## включение host в ingress (необходимо указать для TLS)
+## для приложения включите hostEnabled в файле values-elma365.yaml
+#          name: example.ru
+## TLS настройки minio
+#      extraTls:
+#        - hosts:
+#            - example.ru
+#          secretName: "elma365-onpremise-tls"
+    persistence:
+## размер хранилища данных (PVC)
+      size: 30Gi
+## если не определено, используется StorageClass по умолчанию
+#      storageClass: ""
+## Включение контейнера инициализации, который изменяет владельца и группу точки монтирования тома на `RunAsUser:fsGroup
+    volumePermissions:
+      enabled: true
+## адрес и секрет для приватного registry образов контейнера инициализации
+#      image:
+#        registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#        pullSecrets:
+#          - myRegistryKeySecretName
+## включить проксирование подключения к внешнему S3, если сервер S3 изолирован в локальной сети
+## в файле values-elma365.yaml в параметре db.s3.backend.address необходимо
+## вместо адреса s3 указать хост по которому доступна система
+#    fullnameOverride: "miniogateway"
+#    persistence:
+#      enabled: false
+    gateway:
+      enabled: false
+      auth:
+        s3:
+          accessKey: "elma365user"
+          secretKey: "SecretPassword"
+          serviceEndpoint: "https://master.elewise.local:9000"
+## адрес и секрет для приватного registry
+#    image:
+#      registry: registry.example.com
+## секрет с правами доступа к приватному registry должен быть создан вручную, зашифрованный в Base64
+#      pullSecrets:
+#        - myRegistryKeySecretName
+##
+## Настройки Elasticsearch (Включается для ELMA Bot)
+  elasticsearch:
+    replicas: 1
+    minimumMasterNodes: 1
+    volumeClaimTemplate:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+
