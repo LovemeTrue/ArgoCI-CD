@@ -49,7 +49,7 @@ release:
 	@git push
 
 AAPPS_DIR := apps
-DASHED_VERSION := $(subst .,-,$(VERSION))
+# DASHED_VERSION := $(subst .,-,$(VERSION))
 
 .PHONY: gen-apps
 gen-apps:
@@ -61,7 +61,7 @@ gen-apps:
 	@echo "apiVersion: argoproj.io/v1alpha1" > $(APPS_DIR)/elma365-$(VERSION).yaml
 	@echo "kind: Application" >> $(APPS_DIR)/elma365-$(VERSION).yaml
 	@echo "metadata:" >> $(APPS_DIR)/elma365-$(VERSION).yaml
-	@echo "  name: elma365-$(DASHED_VERSION)" >> $(APPS_DIR)/elma365-$(VERSION).yaml
+	@echo "  name: elma365-$(VERSION)" >> $(APPS_DIR)/elma365-$(VERSION).yaml
 	@echo "  namespace: argocd" >> $(APPS_DIR)/elma365-$(VERSION).yaml
 	@echo "  annotations:" >> $(APPS_DIR)/elma365-$(VERSION).yaml
 	@echo "    argocd.argoproj.io/sync-wave: \"1\"" >> $(APPS_DIR)/elma365-$(VERSION).yaml
