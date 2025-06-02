@@ -14,9 +14,9 @@ VERSION ?= 0
 APPS_DIR := apps
 KUBECONFIG=/home/panov/.kube/kind_conf
 
-.PHONY clean-argocd
 
-argo-clean:
+.PHONY: clean-argocd
+clean-argocd:
 	export KUBECONFIG
 	@echo "🚀 FULL RELEASE: $(VERSION)"
 	APP_NAME=elma365-$$VERSION; \
@@ -155,7 +155,7 @@ cleanup-old-apps:
 
 
 .PHONY: release-full
-release-full: argo-clean release gen-apps cleanup-git cleanup-old-apps
+release-full: clean-argocd release gen-apps cleanup-git cleanup-old-apps
 	@git add $(APPS_DIR)
 	@git commit -m "♻️ Очистка старых версий, релиз $(VERSION)" || echo "🟡 Нет изменений"
 	
