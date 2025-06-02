@@ -4,8 +4,8 @@ metadata:
   name: elma365-2025 -4 -2
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
-    argocd.argoproj.io/depends-on: "[elma365-dbs]"
+    # argocd.argoproj.io/sync-wave: "1"
+    #argocd.argoproj.io/depends-on: "[elma365-dbs]"
 spec:
   project: default
   source:
