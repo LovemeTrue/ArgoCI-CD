@@ -1,9 +1,7 @@
 # === config ===
 DBS_MSG ?= обновление параметров БД
 REPO_URL = https://github.com/LovemeTrue/ArgoCI-CD.git
-PATH_TO_SSL_KEY=/home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/kind.elewise.local.key
-PATH_TO_SSL_CRT=/home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/kind.elewise.local.crt
-PATH_TO_PEM=/home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/rootCA.pemrootCA.pem
+
 # === targets ===
 
 .PHONY: help
@@ -37,14 +35,6 @@ clean-argocd:
 	| tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
 	| kubectl replace --raw /api/v1/namespaces/elma365/finalize -f -
 
-	kubectl create ns elma365
-
-	kubectl label ns elma365 security.deckhouse.io/pod-policy=privileged --overwrite
-
-# Создание секретов
-	kubectl create secret tls elma365-onpremise-tls --cert=PATH_TO_SSL_CRT --key=PATH_TO_SSL_KEY -n elma365-dbs
-	kubectl create secret tls elma365-onpremise-tls --cert=PATH_TO_SSL_CRT --key=PATH_TO_SSL_KEY -n elma365
-	kubectl create configmap elma365-onpremise-ca --from-file=PATH_TO_PEM -n elma365
 
 
 	echo "🧨 Удаляем старое приложение $$APP_NAME из ArgoCD..."; \
@@ -54,7 +44,21 @@ clean-argocd:
 		--yes || true
 
 .PHONY: release
+
+PATH_TO_SSL_KEY := /home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/kind.elewise.local.key
+PATH_TO_SSL_CRT := home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/kind.elewise.local.crt
+PATH_TO_PEM := home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/rootCA.pemrootCA.pem
 release:
+	@echo "Создаем ns, labeling, ssl secrets"
+	kubectl create ns elma365
+
+	kubectl label ns elma365 security.deckhouse.io/pod-policy=privileged --overwrite
+
+# Создание секретов
+	kubectl create secret tls elma365-onpremise-tls --cert=PATH_TO_SSL_CRT --key=PATH_TO_SSL_KEY -n elma365-dbs
+	kubectl create secret tls elma365-onpremise-tls --cert=PATH_TO_SSL_CRT --key=PATH_TO_SSL_KEY -n elma365
+	kubectl create configmap elma365-onpremise-ca --from-file=PATH_TO_PEM -n elma365
+
 	@echo "🚀 Выполняю выпуск версии $(VERSION)"
 	rm -rf $(VERSION)/elma365 $(VERSION)/elma365-dbs
 
