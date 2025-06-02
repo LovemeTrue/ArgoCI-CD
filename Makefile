@@ -13,6 +13,22 @@ help:
 VERSION ?= 0
 APPS_DIR := apps
 
+.PHONY clean-argocd
+
+argo-clean:
+release-full:
+	@echo "🚀 FULL RELEASE: $(VERSION)"
+	APP_NAME=elma365-$$VERSION; \
+	echo "🛑 Скейлим все deployments в namespace=elma365 до 0..."; \
+	for d in $$(kubectl get deploy -n elma365 -o name | grep -v "argocd"); do \
+		kubectl scale --replicas=0 $$d -n elma365 || true; \
+	done; \
+	echo "🧨 Удаляем старое приложение $$APP_NAME из ArgoCD..."; \
+	argocd app delete $$APP_NAME \
+		--server cd.apps.argoproj.io \
+		--cascade=false \
+		--yes || true
+
 .PHONY: release
 release:
 	@echo "🚀 Выполняю выпуск версии $(VERSION)"
@@ -119,7 +135,7 @@ gen-apps:
 	fi
 
 
-.PHONY: cleanup-git
+.PHONY: cleanup-git-apps
 cleanup-git:
 	@echo "🧹 Удаляю локальные ветки кроме main..."
 	@git checkout main

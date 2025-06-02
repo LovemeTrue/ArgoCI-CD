@@ -162,7 +162,7 @@ elma365:
       method: PUT
       accesskeyid: elma365user
       secretaccesskey: SecretPassword
-      bucket: s3elma365
+      bucket: s3elma365-test
       backend:
         address: master.elewise.local:9000
         region: ru-central-1
