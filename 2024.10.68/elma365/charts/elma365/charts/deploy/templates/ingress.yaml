@@ -1,0 +1,94 @@
+{{- $serviceName := include "deploy.name" . -}}
+{{- $servicePort := .Values.global.containerPorts.deploy.http_port -}}
+{{- $host := .Values.global.host -}}
+{{- if eq .Values.global.solution "saas" -}}
+{{- if pluck .Values.global.env .Values.ingress.enabled | first | default .Values.ingress.enabled._default -}}
+{{ if .Values.ingress.password -}}
+{{- if semverCompare ">=1.19-0" (include "kubeVersion" .) -}}
+apiVersion: networking.k8s.io/v1
+{{- else -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ template "deploy.name" . }}-external
+  labels:
+    {{- include "deploy.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /external/$2
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: ingress-deploy-password
+    nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required - deploy'
+    {{- with .Values.global.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if and .Values.global.ingress.ingressClassName (include "deploy.supportsIngressClassname" .) }}
+  ingressClassName: {{ .Values.global.ingress.ingressClassName | quote }}
+  {{- end }}
+  rules:
+  {{- if not .Values.global.companies }}
+    - host: '{{ .Values.global.host }}'
+      http:
+        paths:
+          - path: /ext-api/deploy/external(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+    - host: '*.{{ .Values.global.host }}'
+      http:
+        paths:
+          - path: /ext-api/deploy/external(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+    {{- include "ingressTLS" (list . .Values.global.host) | nindent 2 }}
+  {{- else }}
+    {{- range $company := .Values.global.companies }}
+    - host: '{{ $company }}.{{ $host }}'
+      http:
+        paths:
+          - path: /ext-api/deploy/external(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+    {{- end -}}
+
+    {{- $hosts := list }}
+    {{- range $company := .Values.global.companies }}
+      {{- $host := printf "%s.%s" $company $host }}
+      {{- $hosts = append $hosts $host }}
+    {{- end }}
+
+    {{- include "ingressTLS" (list . $hosts) | nindent 2 }}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}

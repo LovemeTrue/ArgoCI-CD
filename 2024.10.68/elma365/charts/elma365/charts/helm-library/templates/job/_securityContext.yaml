@@ -1,0 +1,17 @@
+{{- define "helm-library.job.securityContext" -}}
+  {{- if ne (len .Values.securityContext) 0 }}
+    {{- toYaml .Values.securityContext }}
+  {{- else if ne (len .Values.global.securityContext) 0 }}
+    {{- toYaml .Values.global.securityContext }}
+  {{- else -}}
+runAsUser: 1001
+  {{- end }}
+{{- end }}
+
+{{- define "helm-library.jobGlobal.securityContext" -}}
+  {{- if ne (len .Values.global.securityContext) 0 }}
+    {{- toYaml .Values.global.securityContext }}
+  {{- else -}}
+runAsUser: 1001
+  {{- end }}
+{{- end }}

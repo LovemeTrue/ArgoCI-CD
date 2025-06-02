@@ -1,0 +1,147 @@
+{{- $overcommit_memory := "true" }}
+{{- if or (eq (toString .Values.global.openshift) "true") (eq (toString .Values.global.overcommit_memory) "false") (and (eq (toString .Values.global.openshift) "true") (eq (toString .Values.global.overcommit_memory) "true")) }}
+  {{- $overcommit_memory = "false" }}
+{{- end }}
+{{- $releaseName := .Release.Name }}
+{{- $name := include "worker.name" . }}
+{{- $gatewayName := include "gateway.name" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "worker.name" . }}
+  labels:
+    {{- include "worker.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.global.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.global.autoscaling.enabled }}
+  replicas: {{ if or (kindIs "float64" .Values.replicaCount) (kindIs "int64" .Values.replicaCount) }}{{ .Values.replicaCount }}{{ else }}{{ .Values.global.replicaCount }}{{ end }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "worker.selectorLabels" . | nindent 6 }}
+  strategy: {{- toYaml .Values.global.updateStrategy | nindent 4 }}
+  template:
+    metadata:
+      labels:
+        sidecar.istio.io/inject: "false"
+        {{- include "worker.selectorLabels" . | nindent 8 }}
+      annotations:
+        {{- if .Values.global.terminationGracePeriodSeconds }}
+        {{- else }}
+        linkerd.io/inject: disabled
+        config.linkerd.io/shutdown-grace-period: "1"
+        {{- end }}
+        {{- with .Values.global.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      terminationGracePeriodSeconds: 1
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      imagePullSecrets:
+      {{- if .Values.image.pullSecret }}
+      {{- range .Values.image.pullSecret }}
+      - name: {{ . }}
+      {{- end }}
+      {{- else }}
+      {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      {{- if eq $overcommit_memory "true" }}
+      initContainers:
+        - name: vm-overcommit-memory
+          image: "{{ .Values.global.image.repository }}/docker/toolkit/busybox:1.36.1"
+          imagePullPolicy: "IfNotPresent"
+          command: ["sysctl", "-w", "vm.overcommit_memory=1"]
+          securityContext:
+            runAsUser: 0
+            privileged: true
+      {{- end }}
+      containers:
+        - name: worker
+          image: "{{ .Values.image.repository | default .Values.global.image.repository }}/elma365/serv_worker/worker:{{ .Values.images.worker }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: http-port-wrk
+              containerPort: {{ .Values.service.http_port_wrk }}
+          env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: ELMA365_WORKER_RABBITMQ_USER
+              value: {{ template "worker.rmquser" . }}
+            - name: ELMA365_WORKER_RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: worker
+                  key: rabbitmq_password
+            {{- if .Values.appconfig.concurrency }}
+            - name: ELMA365_WORKER_CONCURENCY
+              value: {{ int .Values.appconfig.concurrency | quote }}
+            {{- end }}
+            - name: WORKER_HTTP_PORT
+              value: "{{ .Values.service.http_port_wrk }}"
+            {{ if .Values.global.skipSslVerify }}
+            - name: ELMA365_SKIP_SSL_VERIFY
+              value: {{ default "false" .Values.global.skipSslVerify | quote }}
+            - name: NODE_TLS_REJECT_UNAUTHORIZED
+              value: "0"
+            {{- end }}
+            {{- if .Values.appconfig.httpProxyAddr }}
+            - name: HTTP_PROXY
+              value: {{ .Values.appconfig.httpProxyAddr }}
+            {{- end }}
+            - name: ELMA365_GATEWAY_HOST
+              value: {{ $gatewayName | quote }}
+            - name: ELMA365_GATEWAY_PORT
+              value: {{ printf ":%d" (int .Values.global.http_port) | quote }}
+            - name: ELMA365_FORK_AVAILABLE_MEMORY_SIZE
+              value: {{ int .Values.appconfig.forkAvailableMemorySize | quote }}
+            - name: ELMA365_SKIP_COMPILATION_LIMITS
+              value: {{ default "false" .Values.appconfig.skipCompilationLimits | quote }}
+            - name: ELMA365_OTELIER_PORT
+              value: {{ .Values.global.monitoring.lowcode.internalOtlpHttpPort | default 3001 | quote }}
+            {{- if .Values.global.monitoring }}
+            {{- if .Values.global.monitoring.lowcode }}
+            - name: ELMA365_OTELIER_PROMETHEUS_EXPORTER_ENABLED
+              value: {{ .Values.global.monitoring.lowcode.metricExportEnabled | default false | quote }}
+            {{- else }}
+            - name: ELMA365_OTELIER_PROMETHEUS_EXPORTER_ENABLED
+              value: "false"
+            {{- end }}
+            {{- end }}
+          {{- if .Values.global.helmLibrary }}
+            {{- include "helm-library.deployment.env" . | indent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: elma365-env-config
+                optional: true
+            - secretRef:
+                name: elma365-db-connections
+                optional: true
+      {{- if .Values.global.helmLibrary }}
+          securityContext:
+            {{- include "helm-library.deployment.securityContext" . | nindent 12 }}
+          {{- include "helm-library.deployment.resources" . | indent 10 }}
+          {{- include "helm-library.deployment.volumeMounts" . | indent 10 }}
+        {{- if .Values.global.terminationGracePeriodSeconds }}
+          {{- include "helm-library.deployment.lifecycle" . | indent 10 }} 
+        {{- end }}
+        {{- include "helm-library.deployment.volumes" . | indent 6 }}
+        {{- include "helm-library.deployment.terminationgraceperiod" . | indent 6 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}

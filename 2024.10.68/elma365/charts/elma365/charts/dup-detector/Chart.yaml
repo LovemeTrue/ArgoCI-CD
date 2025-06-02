@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: Elma365 duplicates search service
+home: https://git.elewise.com/elma365/dup_detector
+name: dup-detector
+sources:
+- dreg.elewise.com:5005/elma365/dup_detector
+type: application
+version: 0.1.0

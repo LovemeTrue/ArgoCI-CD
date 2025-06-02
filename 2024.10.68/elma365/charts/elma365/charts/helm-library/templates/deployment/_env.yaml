@@ -1,0 +1,9 @@
+{{- define "helm-library.deployment.env" }}
+- name: GOMEMLIMIT
+  value: {{ include "gomemlimit" . | quote }}
+{{- end }}
+
+{{- define "helm-library.deployment.env-worker-gateway" }}
+- name: GOMEMLIMIT
+  value: {{ include "gomemlimit-worker-gateway" . | quote }}
+{{- end }}

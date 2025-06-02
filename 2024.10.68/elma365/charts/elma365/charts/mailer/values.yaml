@@ -1,0 +1,112 @@
+global:
+  namespace: ""
+  host: elma365.ru
+  edition: "standard"
+  solution: "onPremise"
+  env: "production"
+  labels: {}
+  annotations: {}
+  kubeVersion: ""
+  http_port: 3000
+  grpc_port: 5000
+  http_metrics: 3100
+  replicaCount: 1
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  image:
+    repository: dreg.elewise.com:5005
+    pullPolicy: IfNotPresent
+    pullSecret:
+      - regsecret
+      - yandexsecret
+      - customsecret
+  autoscaling:
+    enabled: false
+    type: "hpa"
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+  holdingEnabled: false
+  monitoring:
+    enabled: false
+    namespace: ""
+    provisioner: "k8s"
+    dashboard:
+      enabled: false
+    alerts:
+      enabled: false
+    metrics:
+      interval: 30s
+  cronStartingDeadlineSeconds: ""
+  cronTtlSecondsAfterFinished: ""
+  cronActiveDeadlineSeconds: ""
+  resourceLimits: false
+  resourcesJobs: {}
+  resources: {}
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 2
+    failureThreshold: 1
+    successThreshold: 1
+  readinessProbe:
+    httpGet:
+      path: /readyz
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 2
+    failureThreshold: 1
+    successThreshold: 1
+  podSecurityContext: {}
+  securityContext: {}
+  startupProbe: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  setupJobTtlSecondsAfterFinished:
+images:
+  service: ci-ef80b866
+  setup: ci-8d39fd00
+image:
+  repository: {}
+  pullSecret: {}
+nameOverride: mailer
+podSecurityContext: {}
+securityContext: {}
+podAnnotations: {}
+kubeVersion: ""
+autoscaling: {}
+resourcesJobs: {}
+resources: {}
+livenessProbe: {}
+readinessProbe: {}
+startupProbe: {}
+smtp:
+  host: ""
+  from: ""
+  user: ""
+  password: ""
+  needTLS: false
+jobs:
+  watchDeletedCompanies:
+    enabled:
+      production: true
+      staging: true
+      testing: true
+      _default: true
+    period: "0 0 * * 0"
+appconfig:
+  imapReconnectAttempts: 5
+annotations:
+  ci.elma365.com/commit: "d72d77c2"
+  ci.elma365.com/checksum: "8d39fd00"
+  ci.elma365.com/job_id: "3042426"
+  ci.elma365.com/timestamp: "2025-03-13T10:52:57+00:00"
+  ci.elma365.com/pipeline_id: "551430"

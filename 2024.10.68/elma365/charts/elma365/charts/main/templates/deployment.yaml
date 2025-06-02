@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "main.name" . }}
+  labels:
+    {{- include "main.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.global.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.global.autoscaling.enabled }}
+  replicas: {{ if or (kindIs "float64" .Values.replicaCount) (kindIs "int64" .Values.replicaCount) }}{{ .Values.replicaCount }}{{ else }}{{ .Values.global.replicaCount }}{{ end }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "main.selectorLabels" . | nindent 6 }}
+  strategy: {{- toYaml .Values.global.updateStrategy | nindent 4 }}
+  template:
+    metadata:
+      labels:
+        {{- include "main.selectorLabels" . | nindent 8 }}
+      annotations:
+        {{- with .Values.global.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      imagePullSecrets:
+        {{- if .Values.image.pullSecret }}
+        {{- range .Values.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- else }}
+        {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository | default .Values.global.image.repository }}/elma365/main/gateway:{{ .Values.images.gateway }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.global.grpc_port }}
+            - name: http
+              containerPort: {{ .Values.global.http_port }}
+          env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: ELMA365_MAIN_STORE_URL
+              value: {{ pluck .Values.global.env .Values.appconfig.store.url | first | default .Values.appconfig.store.url._default | quote }}
+            - name: ELMA365_MAIN_WOPI_PRODUCTION
+              value: {{ pluck .Values.global.env .Values.appconfig.wopi.productionEndpoints | first | default .Values.appconfig.wopi.productionEndpoints._default | quote }}
+            {{- if .Values.global.wopi }}
+            - name: ELMA365_MAIN_WOPI_EXTERNAL
+              value: {{ .Values.global.wopi.externalEndpoint | quote }}
+            - name: ELMA365_MAIN_WOPI_EXTERNAL_ENABLED
+              value: {{ .Values.global.wopi.enabled | quote }}
+            {{- if .Values.global.wopi.discovery }}
+            - name: ELMA365_MAIN_WOPI_DISCOVERY
+              value: {{ .Values.global.wopi.discovery | quote }}
+            {{- end }}
+            {{- end }}
+            - name: ELMA365_NAMESPACE
+              value: {{ default .Release.Namespace .Values.global.namespace }} # для редиса
+            - name: ELMA365_SKIP_SSL_VERIFY
+              value: {{ .Values.global.skipSslVerify | quote }}
+            - name: ELMA365_RABBITMQ_USER
+              value: {{ template "main.rmquser" . }}
+            - name: ELMA365_RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: main
+                  key: rabbitmq_password
+            {{- if .Values.global.onpremiseVersion }}
+            - name: ELMA365_ONPREMISE_VERSION
+              value: {{ .Values.global.onpremiseVersion | quote}}
+            {{- end }}
+            {{- if .Values.global.onpremiseCommitHash }}
+            - name: ELMA365_ONPREMISE_COMMIT_HASH
+              value: {{ .Values.global.onpremiseCommitHash | quote }}
+            {{- end }}
+            - name: ELMA365_SETTINGS_SAVE_TEST_CODE
+              value: {{ .Values.appconfig.settings.saveTestCode | quote }}
+            - name: ELMA365_APP_MAX_WORKERS_COUNT
+              value: {{ .Values.appconfig.app.maxWorkersCount | quote }}
+            - name: ELMA365_APP_ITEMS_EXCHANGE_TIMEOUT
+              value: {{ .Values.appconfig.app.itemsExchangeTimeout | quote }}
+            - name: ELMA365_APP_EXCHANGE_TIMEOUT
+              value: {{ .Values.appconfig.app.exchangeTimeout | quote }}
+            - name: ELMA365_APP_ITEMS_EXCHANGE_IMPORT_CHUNK_SIZE
+              value: {{ .Values.appconfig.app.itemsExchangeImportChunkSize | quote }}
+            - name: ELMA365_LDAP_IMPORT_ATTEMPTS_MAX_COUNT
+              value: {{ .Values.appconfig.ldap.attemptsMaxCount | quote }}
+            - name: ELMA365_LDAP_IMPORT_DELAY_BETWEEN_ATTEMPTS
+              value: {{ .Values.appconfig.ldap.delayBetweenAttempts | quote }}
+            - name: ELMA365_LDAP_IMPORT_TIMEOUT
+              value: {{ .Values.appconfig.ldap.importTimeout | quote }}
+            - name: ELMA365_MAIN_DISABLE_BUILD_PERMISSIONS_INDEX
+              value: {{ .Values.appconfig.permissions.disableBuildIndex | quote }}
+          {{- if .Values.global.helmLibrary }}
+            {{- include "helm-library.deployment.env" . | indent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: elma365-env-config
+                optional: true
+            - secretRef:
+                name: elma365-db-connections
+                optional: true
+      {{- if .Values.global.helmLibrary }}
+          securityContext:
+            {{- include "helm-library.deployment.securityContext" . | nindent 12 }}
+          {{- include "helm-library.deployment.probes" . | indent 10 }}
+          {{- include "helm-library.deployment.resources" . | indent 10 }}
+          {{- include "helm-library.deployment.volumeMounts" . | indent 10 }}
+        {{- if .Values.global.terminationGracePeriodSeconds }}
+          {{- include "helm-library.deployment.lifecycle" . | indent 10 }} 
+        {{- end }}
+        {{- include "helm-library.deployment.volumes" . | indent 6 }}
+        {{- include "helm-library.deployment.terminationgraceperiod" . | indent 6 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}

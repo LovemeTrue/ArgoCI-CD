@@ -1,0 +1,43 @@
+{{- if and (eq (toString .Values.global.monitoring.enabled) "true") (eq (toString .Values.global.monitoring.dashboard.enabled) "true") }}
+{{ $root := . }}
+{{ range $path, $_ := .Files.Glob "json/**.json"  }}
+{{- $fullpath := $path }}      # json/folder1/dashboard1.json
+{{- $directory := dir $path }} # json/folder1
+{{- $dir := index (regexSplit "json" (dir $path) -1) 1 }} # /folder1
+{{- $filename := base $path }} # dashboard1.json
+{{- $dashboard := $filename | replace ".json" "" }} # dashboard1
+{{- with $root }}
+{{- if eq (toString .Values.global.monitoring.provisioner) "deckhouse" }}
+apiVersion: deckhouse.io/v1
+kind: GrafanaDashboardDefinition
+metadata:
+  name: grafana-dashboard-{{ $filename | replace ".json" "" }}
+  labels:
+    prometheus.deckhouse.io/grafana-dashboard: ""
+    module: monitoring
+    tier: elma365
+  annotations:
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+spec:
+  folder: "ELMA365-{{ $dir }}/"
+  definition: |
+{{ .Files.Get $path | indent 4 }}
+---
+{{- else }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  annotations:
+    grafana-dashboard-folder: /tmp/dashboards{{ default .Values.dashboardsFolder $dir }}{{ printf "-%s" .Release.Namespace }}
+  name: grafana-dashboard-{{ $filename | replace ".json" "" }}
+  labels:
+    {{- include "grafana-dashboards.labels" . | nindent 4 }}
+{{ toYaml $.Values.labels | indent 4 }}
+data:
+  {{ $filename }}: |-
+{{ .Files.Get $path | indent 4 }}
+---
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

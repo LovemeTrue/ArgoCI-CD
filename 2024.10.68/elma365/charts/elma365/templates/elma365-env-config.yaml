@@ -1,0 +1,274 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elma365-env-config
+  labels:
+    tier: elma365
+    configuration: global
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-30"
+    helm.sh/hook-delete-policy: before-hook-creation
+data:
+  CMUX_BIND: "false"
+  GOMAXPROCS: {{ default 4 .Values.global.goMaxProcs | quote }}
+  SYSTEM_NAME: {{ default "ELMA365" .systemName | quote }}
+  ELMA365_DEBUG: {{ default "false" .Values.debug | quote }}
+  ELMA365_ALLOWED_LANGUAGES: {{ default "ru-RU" ( join "," .Values.language.allowed) | quote }}
+  ELMA365_DEFAULT_LANGUAGE: {{ default "ru-RU" .Values.language.default | quote }}
+
+  {{- if .Values.global.mainDisableBuildPermissionsIndex }}
+  ELMA365_MAIN_DISABLE_BUILD_PERMISSIONS_INDEX: {{ default "false" .Values.global.mainDisableBuildPermissionsIndex | quote }}
+  {{- end }}
+  {{- if .Values.global.collectorDisablePermissionsIndex }}
+  ELMA365_COLLECTOR_DISABLE_PERMISSIONS_INDEX: {{ default "false" .Values.global.collectorDisablePermissionsIndex | quote }}
+  {{- end }}
+  {{- if .Values.global.collectorUseOrOperandInOrgunitFieldsFilter }}
+  ELMA365_COLLECTOR_USE_OR_OPERAND_IN_ORGUNIT_FIELDS_FILTER: {{ default "false" .Values.global.collectorUseOrOperandInOrgunitFieldsFilter | quote }}
+  {{- end }}
+  {{- if .Values.global.collectorUseWhereOrderByLimitOptimization }}
+  ELMA365_COLLECTOR_USE_WHERE_ORDER_BY_LIMIT_OPTIMIZATION: {{ default "false" .Values.global.collectorUseWhereOrderByLimitOptimization | quote }}
+  {{- else }}
+  ELMA365_COLLECTOR_USE_WHERE_ORDER_BY_LIMIT_OPTIMIZATION: "false"
+  {{- end }}
+
+  {{- if .Values.elma365version }}
+  ELMA365_VERSION: {{ .Values.elma365version | replace "onpremise-" "" | quote }}
+  ELMA365_ONPREMISE_VERSION: {{ .Values.elma365version | replace "onpremise-" "" | quote }}
+  {{- else if .Values.global.version }}
+  ELMA365_VERSION: {{ .Values.global.version | quote }}
+  ELMA365_ONPREMISE_VERSION: {{ .Values.global.version | quote }}
+  {{- else if .Values.global.onpremiseVersion }}
+  ELMA365_VERSION: {{ .Values.global.onpremiseVersion | quote }}
+  ELMA365_ONPREMISE_VERSION: {{ .Values.global.onpremiseVersion | quote }}
+  {{- end }}
+  {{- if .Values.eventbusStacktracableSizeCount }}
+  ELMA365_EVENTBUS_STACKTRACERULE_SIZE_COUNT: {{ default 6 .Values.eventbusStacktracableSizeCount | quote }}
+  {{- end }}
+
+  {{- with .Values.global }}
+
+  ELMA365_EDITION:  {{ .edition  | quote }}
+  ELMA365_SOLUTION: {{ .solution | quote }}
+  {{- if .size }}
+  ELMA365_CLOUD_SIZE: {{ .size | quote }}
+  {{- end }}
+  ELMA365_HOST: {{ .host | quote }}
+
+  {{- end }}
+  ELMA365_TLS:  {{ default "true" .Values.db.s3.ssl.enabled | quote }}
+
+  # MultiCluster setup
+  {{- if .Values.global.multicluster }}
+  ELMA365_MULTI_CLUSTER_ENABLE: {{ default "false" .Values.global.multicluster.enabled | quote }}
+  ELMA365_MULTI_CLUSTER_HOST:   {{ default ""      .Values.global.multicluster.clusterHost | quote }}
+  ELMA365_DEFAULT_CLUSTER_ID:   {{ default "00000000-0000-0000-0000-000000000000" .Values.global.multicluster.defaultVirtualClusterId | quote }}
+  {{- end }}
+  {{- if .Values.global.limitRequestTimeoutMs }}
+  ELMA365_LIMIT_REQUEST_TIMEOUT_MS: {{ default "500" .Values.global.limitRequestTimeoutMs | quote }}
+  {{- end}}
+
+  {{- if .Values.global.logEnableErrorEncoder }}
+  ELMA365_LOG_ENABLE_ERROR_ENCODER: {{ default "false" .Values.global.logEnableErrorEncoder  | quote }}
+  {{- end }}
+
+  {{- if .Values.global.maxGrpcBackoffDelay }}
+  ELMA365_MAX_GRPC_BACKOFF_DELAY: {{ .Values.global.maxGrpcBackoffDelay  | quote }}
+  {{- end }}
+  {{- if .Values.global.maxGrpcMessageSize }}
+  ELMA365_MAX_GRPC_MESSAGE_SIZE: {{ .Values.global.maxGrpcMessageSize  | quote }}
+  {{- end }}
+
+
+  {{- if .Values.global.goTimeout }}
+  ELMA365_TIMEOUT: {{ .Values.global.goTimeout | default "1m" | quote }}
+  {{- end }}
+  {{- if .Values.global.timeout }}
+  ELMA365_TIMEOUT: {{ .Values.global.timeout | default "1m" | quote }}
+  {{- end }}
+  ELMA365_ACTIVATE_TIMEOUT: {{ .Values.global.activateTimeout | default "20m" | quote }}
+
+  {{- if .Values.global.loadedUserExpirationPeriod }}
+  # период кэширования чатов для пользователей
+  ELMA365_LOADED_USER_EXPIRATION_PERIOD: {{ .Values.global.loadedUserExpirationPeriod | default "48h" | quote }}
+  {{- end }}
+
+  {{- if .Values.global.maxFileSizeMB }}
+  ELMA365_MAX_FILE_SIZE_MB: {{ default 100 .Values.global.maxFileSizeMB | quote }}
+  {{- end }}
+
+  {{- if .Values.global.allowUseAlternativePathModuleServices }}
+  ELMA365_ALLOW_USE_ALTERNATIVE_PATH_MODULE_SERVICES: {{ .Values.global.allowUseAlternativePathModuleServices | default "false" | quote }}
+  {{- end }}
+
+  # PostgreSQL setup
+  {{- if .Values.global.postgres }}
+    {{- if .Values.global.postgres.maxOpenConns }}
+  ELMA365_POSTGRES_MAX_OPEN_CONNS: {{ .Values.global.postgres.maxOpenConns | default "50" | quote }}
+    {{- end }}
+    {{- if .Values.global.postgres.maxIdleConns }}
+  ELMA365_POSTGRES_MAX_IDLE_CONNS: {{ .Values.global.postgres.maxIdleConns | default "10" | quote }}
+    {{- end }}
+    {{- if .Values.global.postgres.maxConnLife }}
+  ELMA365_POSTGRES_CONN_MAX_LIFETIME: {{ .Values.global.postgres.maxConnLife | default "1m" | quote }}
+    {{- end }}
+    {{- if .Values.global.postgres.poolMaxOpenConns }}
+  ELMA365_POOL_MAX_OPEN_CONNS: {{ .Values.global.postgres.poolMaxOpenConns | default "50" | quote }}
+    {{- end }}
+    {{- if .Values.global.postgres.poolMaxIdleConns }}
+  ELMA365_POOL_MAX_IDLE_CONNS: {{ .Values.global.postgres.poolMaxIdleConns | default "10" | quote }}
+    {{- end }}
+    {{- if .Values.global.postgres.poolConnMaxLifetime }}
+  ELMA365_POOL_CONN_MAX_LIFETIME: {{ .Values.global.postgres.poolConnMaxLifetime | default "1m" | quote }}
+  ELMA365_POOL_CONN_MAX_LIFE_TIME: {{ .Values.global.postgres.poolConnMaxLifetime | default "1m" | quote }}
+    {{- end }}
+  ELMA365_POOL_CHECK_TIMEOUT: {{ .Values.global.postgres.poolCheckTimeout | default "1m" | quote }}
+  {{- end }}
+
+  {{- if .Values.db.psqlUrlPublic }}
+    {{- with .Values.db }}
+    {{- if .publicDBMinOpenConnections }}
+	ELMA365_PUBLIC_DB_MIN_OPEN_CONNECTIONS: {{ default 1  .publicDBMinOpenConnections | quote }}
+    {{- end }}
+    {{- if .publicDBMaxOpenConnections }}
+	ELMA365_PUBLIC_DB_MAX_OPEN_CONNECTIONS: {{ default 10 .publicDBMaxOpenConnections | quote }}
+    {{- end }}
+    {{- if .publicDbConnectionTimeout }}
+ 	ELMA365_PUBLIC_DB_CONNECTION_TIMEOUT: {{ default "32s" .publicDbConnectionTimeout | quote }}
+    {{- end }}
+    {{- if .publicDBMaxConnectionLifetime }}
+	ELMA365_PUBLIC_DB_MAX_CONNECTION_LIFETIME: {{ default "1m" .publicDBMaxConnectionLifetime | quote }}
+    {{- end }}
+    {{- if .publicMongoDisableTracing }}
+  ELMA365_PUBLIC_MONGO_DISABLE_TRACING: {{ default "false" .publicMongoDisableTracing | quote }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+
+  # Redis setup
+  {{- if .Values.global.redis }}
+    {{- if .Values.global.redis.pubSubPoolSize }}
+  ELMA365_REDIS_PUB_SUB_POOL_SIZE: {{ default 10 .Values.global.redis.pubSubPoolSize | quote }}
+    {{- end }}
+    {{- if .Values.global.redis.disable }}
+  ELMA365_DISABLE_COMMON_CACHE: {{ default "false" .Values.global.redis.disable | quote }}
+    {{- end }}
+    {{- if .Values.global.redis.tenant }}
+  exp_ELMA365_TENANT_CACHE_DISABLE: {{ default "true" .Values.global.redis.tenant.disable | quote }}
+    {{- end }}
+  {{- else }}
+  exp_ELMA365_TENANT_CACHE_DISABLE: "true"
+  {{- end }}
+  ELMA365_FEATURE_FLAG_CACHE_TTL: {{ default "1h" .Values.global.FeatureFlagCacheTTL | quote }}
+
+  # MongoDB setup
+  {{- if .Values.global.mongo }}
+    {{- if .Values.global.mongo.disableTracing }}
+  ELMA365_MONGO_DISABLE_TRACING: {{ default "false" .Values.global.mongo.disableTracing | quote }}
+    {{- end }}
+  {{- end }}
+
+  # Scripts timeouts
+  {{- if .Values.global.script }}
+  ELMA365_SCRIPT_EXECUTE_TTL: {{ default "1m" .Values.global.script.executeTtl }}
+  ELMA365_SCRIPT_COMPILE_TTL: {{ default "1m" .Values.global.script.compileTtl }}
+  ELMA365_SCRIPT_QUEUE_TTL: {{ default "1m" .Values.global.script.queueTtl }}
+  {{- end }}
+
+  {{- if .Values.global.forkAvailableMemorySize }}
+  ELMA365_FORK_AVAILABLE_MEMORY_SIZE: {{ default "128" .Values.global.forkAvailableMemorySize | quote }}
+  {{- end }}
+
+  # migrations
+  {{- if eq (toString .Values.global.skipCompilationLimits) "true" }}
+  ELMA365_SKIP_COMPILATION_LIMITS: {{ .Values.global.skipCompilationLimits | quote }}
+  {{- end }}
+  {{- if eq (toString .Values.global.expUseV2Migration) "true" }}
+  ELMA365_EXP_USE_V2_MIGRATION: {{ .Values.global.expUseV2Migration  | quote }}
+  {{- end }}
+
+  {{- if .Values.global.skipCompilationLimits }}
+  ELMA365_SKIP_COMPILATION_LIMITS: {{ default "false" .Values.global.skipCompilationLimits | quote }}
+  {{- end }}
+
+  # Quota setup
+  {{- if .Values.global.quota }}
+    {{- with .Values.global.quota }}
+
+  {{- if .trial }}
+  ELMA365_DEFAULT_QUOTA_DURATION_TRIAL:               {{ default "60"  .trial.duration | quote }}
+
+  ELMA365_WEB_API_DEFAULT_QUOTA_TRIAL:                {{ default "90" .trial.web | quote }}
+  ELMA365_FRONT_API_DEFAULT_QUOTA_TRIAL:              {{ default "3000" .trial.front | quote }}
+  ELMA365_SCRIPT_COMPILE_DEFAULT_QUOTA_TRIAL:         {{ default "30" .trial.compile | quote }}
+  ELMA365_SCRIPT_EXECUTE_DEFAULT_QUOTA_TRIAL:         {{ default "60" .trial.execute | quote }}
+  ELMA365_START_PROCESS_DEFAULT_QUOTA_DURATION_TRIAL: {{ default "300" .trial.startProcessDefaultDuration | quote }}
+  ELMA365_START_PROCESS_DEFAULT_QUOTA_TRIAL:          {{ default "300" .trial.startProcessDefault | quote }}
+
+  ELMA365_HEAVY_QUERY_DEFAULT_QUOTA_TRIAL:            {{ default "500" .trial.heavyQueryDefault | quote }}
+  {{- end }}
+  {{- if .commerce }}
+  ELMA365_START_PROCESS_DEFAULT_QUOTA_DURATION: {{ default "60"   .commerce.startProcessDefaultQuotaDuration | quote }}
+  ELMA365_START_PROCESS_DEFAULT_QUOTA:          {{ default "300"  .commerce.startProcessDefaultQuota | quote }}
+
+  ELMA365_DEFAULT_QUOTA_DURATION:               {{ default "60"   .commerce.duration | quote }}
+
+  ELMA365_WEB_API_DEFAULT_QUOTA:                {{ default "90"   .commerce.web | quote }}
+  ELMA365_FRONT_API_DEFAULT_QUOTA:              {{ default "5000" .commerce.front | quote }}
+  ELMA365_SCRIPT_COMPILE_DEFAULT_QUOTA:         {{ default "30"   .commerce.compile | quote }}
+  ELMA365_SCRIPT_EXECUTE_DEFAULT_QUOTA:         {{ default "60"   .commerce.execute | quote }}
+  ELMA365_HEAVY_QUERY_DEFAULT_QUOTA:            {{ default "1000" .commerce.heavyQueryDefaultQuota | quote }}
+
+  ELMA365_QUOTA_FORMULA_FACTOR:                 {{ default "10"   .commerce.formula | quote }}
+  {{- end }}
+  # disable quota/limits requests
+  {{- if .defaultTTL }}
+  ELMA365_DEFAULT_QUOTA_TTL: {{ default "1m" .defaultTTL | quote }}
+  {{- end }}
+  {{- if .webApiQuotaFormulaFactor }}
+  ELMA365_WEB_API_QUOTA_FORMULA_FACTOR:        {{ default "5" .webApiQuotaFormulaFactor | quote }}
+  {{- end }}
+  {{- if .frontApiQuotaFormulaFactor }}
+  ELMA365_FRONT_API_QUOTA_FORMULA_FACTOR:      {{ default "100" .frontApiQuotaFormulaFactor | quote }}
+  {{- end }}
+  {{- if .scriptExecuteQuotaFormulaFactor }}
+  ELMA365_SCRIPT_EXECUTE_QUOTA_FORMULA_FACTOR: {{ default "10" .scriptExecuteQuotaFormulaFactor | quote }}
+  {{- end }}
+  {{- if .scriptCompileQuotaFormulaFactor }}
+  ELMA365_SCRIPT_COMPILE_QUOTA_FORMULA_FACTOR: {{ default "5" .scriptCompileQuotaFormulaFactor | quote }}
+  {{- end }}
+  {{- if .startProcessQuotaFormulaFactor }}
+  ELMA365_START_PROCESS_QUOTA_FORMULA_FACTOR:  {{ default "10" .startProcessQuotaFormulaFactor | quote }}
+  {{- end }}
+
+    {{- end }}
+  {{- end }}
+  # Quota setup end
+
+  {{- if eq .Values.global.solution "onPremise" }}
+  ELMA365_ENABLE_FULL_KEY_AS_SLOT: "true"
+  {{- end }}
+  ELMA365_ENABLE_MASTER_DB_REQUIRED: "true" # enable Master only for Migrations
+
+  {{- if .Values.global.proxy }}
+  {{- if eq .Values.global.proxy.enabled true -}}
+  {{- if .Values.global.proxy.httpsProxyCaps }}
+  HTTPS_PROXY: {{ .Values.global.proxy.httpsProxyCaps | quote }}
+  {{- end}}
+  {{- if .Values.global.proxy.httpProxyCaps }}
+  HTTP_PROXY: {{ .Values.global.proxy.httpProxyCaps | quote }}
+  {{- end}}
+  {{- if .Values.global.proxy.httpsProxy }}
+  https_proxy: {{ .Values.global.proxy.httpsProxy | quote }}
+  {{- end}}
+  {{- if .Values.global.proxy.httpProxy }}
+  http_proxy: {{ .Values.global.proxy.httpProxy | quote }}
+  {{- end}}
+  {{- if .Values.global.proxy.noProxyCaps }}
+  NO_PROXY: {{ .Values.global.proxy.noProxyCaps | quote }}
+  {{- end}}
+  {{- if .Values.global.proxy.noProxy }}
+  no_proxy: {{ .Values.global.proxy.noProxy | quote }}
+  {{- end}}
+  {{- end}}
+  {{- end}}

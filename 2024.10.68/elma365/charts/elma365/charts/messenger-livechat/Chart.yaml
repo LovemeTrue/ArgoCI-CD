@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: Elma365 livechat service
+home: https://git.elewise.com/elma365/messenger-livechat
+name: messenger-livechat
+sources:
+- dreg.elewise.com:5005/elma365/messenger-livechat
+type: application
+version: 0.1.0

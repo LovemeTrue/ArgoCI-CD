@@ -1,0 +1,10 @@
+{{- if .Values.global.managedServices.enabled }}
+{{- if ne .Values.global.managedServices.namespace .Release.Namespace }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ tpl .Values.global.managedServices.namespace . }}
+  labels:
+    babysitter-manageable: "true"
+{{- end }}
+{{- end }}
