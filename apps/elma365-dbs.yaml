@@ -18,6 +18,6 @@ spec:
     server: https://kubernetes.default.svc
     namespace: elma365-dbs
   syncPolicy:
-    automated:
+    automated: false
       prune: true
       selfHeal: true
