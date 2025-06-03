@@ -83,6 +83,7 @@ release:
 	rm -rf $(VERSION)/elma365 $(VERSION)/elma365-dbs
 
 	@echo "📦 Скачиваем чарт elma365..."
+	helm repo update
 	helm pull elma365/elma365 --version $(VERSION) --untar
 	mkdir -p $(VERSION)/elma365
 	mv elma365/* $(VERSION)/elma365/
