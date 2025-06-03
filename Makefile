@@ -22,7 +22,6 @@ clean-argocd:
 	@echo "🔁 Скейлим deployments в namespace=elma365 до 0 (если есть)..."
 	@kubectl get deploy -n elma365 -o name 2>/dev/null | xargs -r -n1 kubectl scale -n elma365 --replicas=0 || true
 
-
 	@echo "🧹 Чистим ресурсы с hook-finalizer перед удалением namespace elma365..."
 	@kubectl get all -n elma365 -o json 2>/dev/null \
 	| jq '.items[] | select(.metadata.finalizers != null) | select([.metadata.finalizers[] | contains("argocd.argoproj.io/hook-finalizer")] | any)' \
