@@ -1,0 +1,8 @@
+labels:
+  grafana_dashboard: "true"
+dashboardsFolder: "/Infrastructure"
+env: production
+includeFolders:
+  - name: folder1
+excludeFolders:
+  - name: folder2

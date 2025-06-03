@@ -1,0 +1,41 @@
+apiVersion: v2
+appVersion: 0.1.7
+dependencies:
+- condition: global.postgresql.enabled
+  name: postgresql
+  repository: file://charts/postgresql
+  version: 11.6.26
+- condition: global.mongodb.enabled
+  name: mongodb
+  repository: file://charts/mongodb
+  version: 12.1.31
+- condition: global.redis.enabled
+  name: redis
+  repository: file://charts/redis
+  version: 17.15.6
+- condition: global.valkey.enabled
+  name: valkey
+  repository: file://charts/valkey
+  version: 3.0.3
+- condition: global.redis-cluster.enabled
+  name: redis-cluster
+  repository: file://charts/redis-cluster
+  version: 8.7.2
+- condition: global.minio.enabled
+  name: minio
+  repository: file://charts/minio
+  version: 11.8.0
+- condition: global.rabbitmq.enabled
+  name: rabbitmq
+  repository: file://charts/rabbitmq
+  version: 14.7.0
+- condition: global.elasticsearch.enabled
+  name: elasticsearch
+  repository: file://charts/elasticsearch
+  version: 7.9.3
+- name: common
+  repository: file://charts/common
+description: Helm chart for ELMA365 databases
+name: elma365-dbs
+type: application
+version: 0.1.7

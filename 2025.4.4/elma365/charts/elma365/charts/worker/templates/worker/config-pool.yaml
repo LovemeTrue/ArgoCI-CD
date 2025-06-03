@@ -1,0 +1,14 @@
+{{- if .Values.global.workerPoolCfg }}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.global.workerPoolConfigMapName }}
+  labels:
+    tier: elma365
+    configuration: global
+data:
+{{ .Values.global.workerPoolConfigFileName | indent 2 }}: |
+{{ .Values.global.workerPoolCfg | toJson | indent 4 }}
+
+{{- end }}
