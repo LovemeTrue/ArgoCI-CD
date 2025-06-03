@@ -23,11 +23,12 @@ clean-argocd:
 	@kubectl get deploy -n elma365 -o name 2>/dev/null | xargs -r -n1 kubectl scale -n elma365 --replicas=0 || true
 
 	@echo "🗑 Удаляем namespace elma365 (если существует)..."
-	@kubectl delete ns elma365 --ignore-not-found=true || true
 	@kubectl get ns elma365 -o json 2>/dev/null \
 		| tr -d '\n' \
 		| sed 's/"finalizers": \[[^]]\+\]/"finalizers": []/' \
 		| kubectl replace --raw /api/v1/namespaces/elma365/finalize -f - || true
+	@kubectl delete ns elma365 --ignore-not-found=true || true
+	
 
 	@echo "🗑 Удаляем namespace elma365-dbs (если существует)..."
 	@kubectl delete ns elma365-dbs --ignore-not-found=true || true
