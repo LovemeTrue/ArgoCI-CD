@@ -189,7 +189,7 @@ cleanup-old-apps:
 
 
 .PHONY: release-full
-release-full: release gen-apps cleanup-git cleanup-old-apps
+release-full: clean-argocd release gen-apps cleanup-git cleanup-old-apps
 	@git add $(APPS_DIR)
 	@git commit -m "♻️ Очистка старых версий, релиз $(VERSION)" || echo "🟡 Нет изменений"
 	
