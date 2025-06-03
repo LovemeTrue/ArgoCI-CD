@@ -1,5 +1,0 @@
-{{- $host := .Values.global.host -}}
-1. Get the application URL by running these commands:
-{{- range .Values.global.companies }}
-  http://{{ . }}.{{ $host }}
-{{- end }}

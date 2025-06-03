@@ -1,9 +1,0 @@
-apiVersion: v2
-appVersion: 1.16.0
-description: Elma365 widget manager
-home: https://git.elewise.com/elma365/widget
-name: widget
-sources:
-- dreg.elewise.com:5005/elma365/widget
-type: application
-version: 0.1.0

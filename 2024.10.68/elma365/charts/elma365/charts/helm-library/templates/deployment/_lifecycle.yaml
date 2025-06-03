@@ -1,8 +1,0 @@
-{{- define "helm-library.deployment.lifecycle" }}
-lifecycle:
-  preStop:
-    exec:
-      command:
-        - /bin/sleep
-        - {{ mulf (.Values.global.terminationGracePeriodSeconds | default 30) 0.5 | int64 | quote }}
-{{- end }}

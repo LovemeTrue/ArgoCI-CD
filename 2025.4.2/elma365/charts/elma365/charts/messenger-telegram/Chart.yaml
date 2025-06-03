@@ -1,9 +1,0 @@
-apiVersion: v2
-appVersion: 0.1.0
-description: Elma365 telegram service
-home: https://git.elewise.com/elma365/messenger-telegram
-name: messenger-telegram
-sources:
-- dreg.elewise.com:5005/elma365/messenger-telegram
-type: application
-version: 0.1.0

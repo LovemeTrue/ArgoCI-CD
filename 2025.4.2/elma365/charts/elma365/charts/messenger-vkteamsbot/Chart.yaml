@@ -1,9 +1,0 @@
-apiVersion: v2
-appVersion: 0.1.0
-description: Elma365 vkteamsbot service
-home: https://git.elewise.com/elma365/messenger-vkteamsbot
-name: messenger-vkteamsbot
-sources:
-- dreg.elewise.com:5005/elma365/messenger-vkteamsbot
-type: application
-version: 0.1.0

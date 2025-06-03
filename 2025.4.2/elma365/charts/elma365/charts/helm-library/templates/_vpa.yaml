@@ -1,9 +1,0 @@
-{{- define "helm-library.vpa" }}
-{{- $name := include "helm-library.name" . }}
-{{- if or (eq (toString .Values.global.autoscaling.enabled) "true") (eq (toString .Values.autoscaling.enabled) "true") }}
-{{- if eq (toString .Values.global.autoscaling.type) "vpa" }}
-
-
-{{- end }}
-{{- end }}
-{{- end }}

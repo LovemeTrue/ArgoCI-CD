@@ -1,9 +1,0 @@
-apiVersion: v2
-appVersion: 0.1.0
-description: Elma365 angular frontend
-home: https://git.elewise.com/elma365/front
-name: front
-sources:
-- dreg.elewise.com:5005/elma365/front
-type: application
-version: 0.1.0

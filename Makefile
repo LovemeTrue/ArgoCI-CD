@@ -64,7 +64,8 @@ clean-argocd:
 	@argocd app delete elma365-dbs --server cd.apps.argoproj.io --cascade=false --yes || true
 
 	@echo "🔄 Обновляем root-app через hard-refresh..."
-	@argocd app sync root-app --hard-refresh || true
+	@argocd app get root-app --hard-refresh 
+	@argocd app sync root-app
 
 .PHONY: release
 

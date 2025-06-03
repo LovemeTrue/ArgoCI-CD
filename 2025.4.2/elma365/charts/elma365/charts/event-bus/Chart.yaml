@@ -1,9 +1,0 @@
-apiVersion: v2
-appVersion: 1.0.0
-description: event-bus
-home: https://git.elewise.com/elma365/event_bus
-name: event-bus
-sources:
-- dreg.elewise.com:5005/elma365/event_bus
-type: application
-version: 0.1.0
