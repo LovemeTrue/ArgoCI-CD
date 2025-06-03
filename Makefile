@@ -17,31 +17,40 @@ KUBECONFIG=/home/panov/.kube/kind_conf
 
 .PHONY: clean-argocd
 clean-argocd:
-	export KUBECONFIG
-	@echo "🚀 FULL RELEASE: $(VERSION)"
-	APP_NAME=elma365-$$VERSION; \
-	echo "🛑 Скейлим все deployments в namespace=elma365 до 0..."; \
-	for d in $$(kubectl get deploy -n elma365 -o name | grep -v "argocd"); do \
-		kubectl scale --replicas=0 $$d -n elma365 || true; \
-	done; \         
-# Удаление и создание ns + лейблинг    
-	kubectl get namespace "elma365" -o json \
-	| tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
-	| kubectl replace --raw /api/v1/namespaces/elma365/finalize -f -
+	@echo "🧹 Чистим ArgoCD-приложения и неймспейсы перед релизом ($(VERSION))..."
 
-	kubectl delete ns elma365
+	@echo "🔁 Скейлим deployments в namespace=elma365 до 0 (если есть)..."
+	@kubectl get deploy -n elma365 -o name 2>/dev/null | xargs -r -n1 kubectl scale -n elma365 --replicas=0 || true
 
-	kubectl get namespace "elma365" -o json \
-	| tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
-	| kubectl replace --raw /api/v1/namespaces/elma365/finalize -f -
+	@echo "🗑 Удаляем namespace elma365 (если существует)..."
+	@kubectl delete ns elma365 --ignore-not-found=true || true
+	@kubectl get ns elma365 -o json 2>/dev/null \
+		| tr -d '\n' \
+		| sed 's/"finalizers": \[[^]]\+\]/"finalizers": []/' \
+		| kubectl replace --raw /api/v1/namespaces/elma365/finalize -f - || true
 
+	@echo "🗑 Удаляем namespace elma365-dbs (если существует)..."
+	@kubectl delete ns elma365-dbs --ignore-not-found=true || true
 
+	@echo "🆕 Создаём namespace'ы elma365 и elma365-dbs..."
+	@kubectl create ns elma365 || true
+	@kubectl create ns elma365-dbs || true
 
-	echo "🧨 Удаляем старое приложение $$APP_NAME из ArgoCD..."; \
-	argocd app delete $$APP_NAME \
-		--server cd.apps.argoproj.io \
-		--cascade=false \
-		--yes || true
+	@echo "🏷 Лейблим elma365 namespace как privileged..."
+	@kubectl label ns elma365 security.deckhouse.io/pod-policy=privileged --overwrite || true
+
+	@echo "⚙️ Патчим nodegroup master с maxPods=200..."
+	@kubectl patch nodegroup master --type=merge -p '{"spec":{"kubelet":{"maxPods":200}}}' || true
+
+	@echo "🗑 Удаляем манифесты elma365 приложений..."
+	@rm -f $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs.yaml || true
+
+	@echo "🧨 Удаляем ArgoCD приложения..."
+	@argocd app delete elma365-$(VERSION) --server cd.apps.argoproj.io --cascade=false --yes || true
+	@argocd app delete elma365-dbs --server cd.apps.argoproj.io --cascade=false --yes || true
+
+	@echo "🔄 Обновляем root-app через hard-refresh..."
+	@argocd app sync root-app --hard-refresh || true
 
 .PHONY: release
 
