@@ -46,7 +46,11 @@ clean-argocd:
 	@echo "🔐 Создаём TLS secret в namespace elma365-dbs..."
 	@kubectl create secret tls elma365-onpremise-tls --cert=./ssl/kind.elewise.local.crt --key=./ssl/kind.elewise.local.key -n elma365-dbs
 	@echo "🔐 Создаём TLS secret в namespace elma365..."
+<<<<<<< HEAD
 	@kubectl create secret tls elma365-onpremise-tls --cert=./home/kind/ssl/kind.elewise.local.crt --key=./ssl/kind.elewise.local.key -n elma365 
+=======
+	@kubectl create secret tls elma365-onpremise-tls --cert=./ssl/kind.elewise.local.crt --key=./ssl/kind.elewise.local.key -n elma365 
+>>>>>>> 6ce2160 (dad)
 	@echo "📜 Создаём configMap с rootCA в elma365..."
 	@kubectl create configmap elma365-onpremise-ca --from-file=elma365-onpremise-ca.pem=./ssl/rootCA.pem -n elma365
 
