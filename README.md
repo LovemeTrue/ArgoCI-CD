@@ -1,6 +1,6 @@
 # 🚀 Elma365 GitOps Platform with ArgoCD & Helm
 
-Этот репозиторий реализует **GitOps-платформу** для деплоя `elma365` и `elma365-dbs` в Kubernetes через **ArgoCD + Helm**, с полной автоматизацией через Makefile и GitHub Actions.
+Этот репозиторий реализует **GitOps-платформу** для деплоя `elma365` и `elma365-dbs` в Kubernetes через **ArgoCD + Helm**, с полной автоматизацией через Makefile.
 
 ---
 
@@ -33,13 +33,20 @@
 
 ## 📂 Структура репозитория
 ```
-├── apps/ # ArgoCD Application YAML'ы
-├── values/ # values-файлы для Helm
-├── 2025.4.3/
-│ ├── elma365/ # чарт + values
-│ └── elma365-dbs/ # чарт + values
-├── Makefile # Автоматизация
-├── .github/workflows/ # CI (ArgoCD sync, helm validate)
+.
+├── Makefile                     # Главный механизм CI/CD
+├── apps/                        # ArgoCD Application YAML-файлы
+├── 2025.4.2/                    # Пример версии чарта
+│   ├── elma365/
+│   │   ├── Chart.yaml
+│   │   ├── values-elma365.yaml
+│   └── elma365-dbs/
+│       ├── Chart.yaml
+│       ├── values-elma365-dbs.yaml
+├── ssl/                         # TLS-сертификаты и корневой CA
+│   ├── kind.elewise.local.crt
+│   ├── kind.elewise.local.key
+│   └── rootCA.pem
 ```
 ---
 
@@ -55,10 +62,71 @@
 | `make delete-old-applications`       | Удаляет старые ArgoCD Application из кластера                |
 
 ---
+🛠 Makefile Targets
+
+🔁 make release-full VERSION=2025.4.2
+
+Полный GitOps-релиз:
+	•	Скейлит и удаляет namespace elma365, elma365-dbs
+	•	Удаляет ArgoCD приложения и finalizer’ы
+	•	Создаёт namespace’ы заново, применяет label’ы
+	•	Создаёт TLS-секреты и ConfigMap с CA
+	•	Скачивает нужную версию чарта
+	•	Копирует values-файлы
+	•	Генерирует ArgoCD Application YAML
+	•	Обновляет root-app через hard-refresh
+
+🧼 make clean-argocd
+
+Чистка всего окружения:
+	•	Удаляет namespace’ы (с finalizer-hook обработкой)
+	•	Удаляет ArgoCD приложения
+	•	Удаляет YAML-файлы в apps/
+	•	Создаёт заново секреты и configmap
+	•	Обновляет root-app
+
+📦 make release VERSION=...
+
+Скачивает Helm-чарты в нужную версию и создаёт структуру /VERSION/elma365/, /VERSION/elma365-dbs/
+
+📄 make gen-apps VERSION=...
+
+Генерирует YAML-файлы ArgoCD Application:
+	•	apps/elma365-$(VERSION).yaml
+	•	apps/elma365-dbs.yaml
+С учётом syncWave, depends-on, valueFiles
+
+✏️ make update-values
+
+Коммитит изменения в values-elma365.yaml (если есть) → триггерит ArgoCD sync
+
+⸻
+
+🔐 TLS и CA
+
+Секреты автоматически создаются:
+	•	elma365-onpremise-tls — в elma365 и elma365-dbs
+	•	elma365-onpremise-ca — в elma365
+
+Файлы должны находиться в ./ssl/:
+	•	kind.elewise.local.crt
+	•	kind.elewise.local.key
+	•	rootCA.pem
+
+⸻
+
+🧠 Finalizer Hook Fix
+
+Внутри make clean-argocd автоматически очищаются все argocd.argoproj.io/hook-finalizer, чтобы корректно удалять namespace elma365.
 
 ## 🚀 Деплой новой версии
 
 Пример для версии `2025.4.3`:
 
-```bash
+```sh
 make release-full VERSION=2025.4.3
+```
+🤝 Авторы и поддержка
+
+Создан и поддерживается с ❤️
+Контакты: @SimplicityOfTheGospel
