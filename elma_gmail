@@ -18,3 +18,99 @@ ArgoCD.
 И организовать деплой:
 - всех подов связанных системой d8 на system-node
 - всех подов из ns elma365 и elma365-dbs на worker-node.
+
+
+#!/bin/bash
+set -e
+
+# Конфигурация
+DOMAIN="sale.elewise.com"
+EMAIL="legkodogatca@gmail.com"  # Замените на реальный email
+MINIO_DATA_DIR="/data"   # Путь к данным MinIO
+MINIO_CERTS_DIR="/etc/minio/certs"
+
+# Проверка запуска от root
+if [ "$(id -u)" -ne 0 ]; then
+  echo "Скрипт должен запускаться с правами root!" >&2
+  exit 1
+fi
+
+# Установка Nginx и Certbot
+echo "Установка зависимостей..."
+apt-get update
+apt-get install -y nginx certbot python3-certbot-nginx
+
+# Остановка Nginx для настройки
+systemctl stop nginx || true
+
+# Временная конфигурация Nginx для HTTP-валидации
+echo "Настройка временного Nginx..."
+cat > /etc/nginx/sites-available/temp-validation <<EOF
+server {
+    listen 80;
+    server_name ${DOMAIN} *.${DOMAIN};
+    location / {
+        return 404;
+    }
+}
+EOF
+
+ln -sf /etc/nginx/sites-available/temp-validation /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+systemctl start nginx
+
+# Получение wildcard-сертификата
+echo "Запрос wildcard-сертификата для *.${DOMAIN}..."
+certbot certonly --nginx \
+  -d "${DOMAIN}" \
+  -d "*.${DOMAIN}" \
+  --email "${EMAIL}" \
+  --agree-tos \
+  --non-interactive \
+  --expand
+
+# Настройка Nginx для MinIO
+echo "Настройка Nginx для MinIO..."
+cat > /etc/nginx/sites-available/minio <<EOF
+server {
+    listen 443 ssl;
+    server_name master.${DOMAIN};
+
+    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+
+    location / {
+        proxy_pass https://localhost:9000;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    }
+}
+EOF
+
+# Активация конфига Nginx
+ln -sf /etc/nginx/sites-available/minio /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/temp-validation
+systemctl restart nginx
+
+# Настройка сертификатов для MinIO
+echo "Настройка MinIO..."
+mkdir -p "${MINIO_CERTS_DIR}"
+cp "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" "${MINIO_CERTS_DIR}/public.crt"
+cp "/etc/letsencrypt/live/${DOMAIN}/privkey.pem" "${MINIO_CERTS_DIR}/private.key"
+chown -R 777 "${MINIO_CERTS_DIR}"
+
+# Перезапуск MinIO
+systemctl restart minio
+
+# Настройка автоматического обновления
+echo "Настройка автоматического обновления..."
+cat > /etc/cron.weekly/renew-certbot <<EOF
+#!/bin/sh
+certbot renew --quiet --post-hook "systemctl reload nginx && systemctl restart minio"
+EOF
+chmod +x /etc/cron.weekly/renew-certbot
+
+echo "Готово! Настройка завершена."
+echo "MinIO доступен по адресу: https://minio.${DOMAIN}"
+echo "Сертификат будет автоматически обновляться."

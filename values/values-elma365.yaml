@@ -164,7 +164,7 @@ elma365:
       secretaccesskey: SecretPassword
       bucket: s3elma365-test
       backend:
-        address: master.elewise.local:9000
+        address: master.sale.elewise.com:9000
         region: ru-central-1
       ssl:
         enabled: "true"
@@ -172,7 +172,7 @@ elma365:
         enabled: "false"
 ## адрес S3 для резервного копирования скриптом elma365db.sh в формате, если S3 в Kubernetes-кластере
 ## http(s)://minio.<namespace>.svc.<cluster.local>, для внешнего S3 формат http(s)://example.ru:9000
-      dumpurl: "https://master.elewise.local:9000"
+      dumpurl: "https:/master.sale.elewise.com:9000"
 ## включение возможности использовать внешние секреты для подключение к БД
 #    secrets: true
 ## имя секрета со строкой подключения к БД Postgres, зашифрованной в Base64 (ключ PSQL_URL)
