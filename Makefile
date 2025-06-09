@@ -193,7 +193,6 @@ cleanup-git:
 	@git checkout main
 	@git pull
 	@echo "✅ Возврат в main и удаление лишних веток завершено"
-
 .PHONY: cleanup-old-apps
 cleanup-old-apps:
 	@echo "🧹 Удаляю старые ArgoCD приложения elma365-*, кроме $(VERSION) и dbs..."
