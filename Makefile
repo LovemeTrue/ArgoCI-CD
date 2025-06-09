@@ -60,12 +60,12 @@ clean-argocd:
 	@rm -f $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs.yaml || true
 
 	@echo "🧨 Удаляем ArgoCD приложения..."
-	@argocd app delete elma365-$(VERSION) --server cd.apps.argoproj.io --cascade=false --yes || true
-	@argocd app delete elma365-dbs --server cd.apps.argoproj.io --cascade=false --yes || true
+	@argocd app delete elma365-$(VERSION) --server cd.apps.argoproj.io --grpc-web --cascade=false --yes || true
+	@argocd app delete elma365-dbs --server cd.apps.argoproj.io  --grpc-web --cascade=false --yes || true
 
-	@echo "🔄 Обновляем root-app через hard-refresh..."
-	@argocd app get root-app  --server cd.apps.argoproj.io --hard-refresh
-	@argocd app sync root-app --server cd.apps.argoproj.io
+	# @echo "🔄 Обновляем root-app через hard-refresh..."
+	# @argocd app get root-app  --server cd.apps.argoproj.io --grpc-web --hard-refresh
+	# @argocd app sync root-app --server cd.apps.argoproj.io --grpc-web
 
 .PHONY: release
 
