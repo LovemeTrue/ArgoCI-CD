@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mailer-sa
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: mailer-scale-reader
+rules:
+  - apiGroups: [ "apps" ]
+    resources: [ "deployments/scale" ]
+    verbs: [ "get", "list" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mailer-read-services
+subjects:
+  - kind: ServiceAccount
+    name: mailer-sa
+roleRef:
+  kind: Role
+  name: mailer-scale-reader
+  apiGroup: rbac.authorization.k8s.io

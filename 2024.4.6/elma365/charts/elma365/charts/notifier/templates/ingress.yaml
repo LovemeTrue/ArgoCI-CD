@@ -1,0 +1,78 @@
+{{- $serviceName := include "notifier.name" . -}}
+{{- $servicePort := .Values.global.http_port -}}
+{{- $host := .Values.global.host -}}
+{{- if ne (toString .Values.global.openshift) "true" }}
+{{- if semverCompare ">=1.19-0" (include "kubeVersion" .) -}}
+apiVersion: networking.k8s.io/v1
+{{- else -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ template "notifier.name" . }}
+  labels:
+    {{- include "notifier.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.global.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if and .Values.global.ingress.ingressClassName (include "notifier.supportsIngressClassname" .) }}
+  ingressClassName: {{ .Values.global.ingress.ingressClassName | quote }}
+  {{- end }}
+  rules:
+    {{- if eq .Values.global.solution "onPremise" }}
+  {{- if or .Values.global.ingress.onpremiseTls.enabled .Values.global.ingress.hostEnabled }}
+    - host: {{ .Values.global.host }}
+      http:
+  {{- else }}
+    - http:
+  {{- end }}
+        paths:
+          - path: /ws/
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+  {{- if .Values.global.ingress.onpremiseTls.enabled }}  
+  tls: 
+    - hosts:
+      - {{ .Values.global.host }}
+      secretName: {{ .Values.global.ingress.onpremiseTls.secret }}
+  {{- end }}
+    {{- else -}}
+    {{- range $company := .Values.global.companies }}
+    - host: '{{ $company }}.{{ $host }}'
+      http:
+        paths:
+          - path: /ws/
+            pathType: ImplementationSpecific
+            backend:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+    {{- end -}}
+    {{- end -}}
+{{- $hosts := list }}
+{{- range $company := .Values.global.companies }}
+{{- $host := printf "%s.%s" $company $host }}
+{{- $hosts = append $hosts $host }}
+{{- end }}
+{{- include "ingressTLS" (list . $hosts) | nindent 2 }}
+{{- end }}

@@ -1,0 +1,81 @@
+global:
+  namespace: ""
+  host: elma365.ru
+  edition: "standard"
+  solution: "onPremise"
+  env: "production"
+  labels: {}
+  annotations: {}
+  kubeVersion: ""
+  ingress:
+    onpremiseTls:
+      enabled: false
+    annotations: {}
+    ingressClassName: ""
+  http_port: 3000
+  grpc_port: 5000
+  http_metrics: 3100
+  replicaCount: 1
+  backoffLimit: 5
+  image:
+    repository: dreg.elewise.com:5005
+    pullPolicy: IfNotPresent
+    pullSecret:
+      - regsecret
+      - yandexsecret
+      - customsecret
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+  holdingEnabled: false
+  monitoring:
+    enabled: false
+    namespace: ""
+    provisioner: "k8s"
+    dashboard:
+      enabled: false
+    alerts:
+      enabled: false
+    metrics:
+      interval: 30s
+  companies:
+    - '*'
+  resourceLimits: false
+  resourcesJobs: {}
+  resources: {}
+  podSecurityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  setupJobTtlSecondsAfterFinished:
+images:
+  notifier: ci-ab5470ff
+  setup: ci-4bf8811a
+image:
+  repository: {}
+  pullSecret: {}
+appconfig:
+  push:
+    fcmKey: ""
+    keyPath: "/etc/notifier/fcm-key.json"
+  itemUpdatedConcurrencyCount: 100
+  observableCollectionEventsConcurrencyCount: 100
+  pushProtocol: elma365
+ingress:
+  annotations: {}
+autoscaling: {}
+nameOverride: notifier
+podSecurityContext: {}
+podAnnotations: {}
+kubeVersion: ""
+resourcesJobs: {}
+resources: {}
+rabbitmq: {}
+annotations:
+  ci.elma365.com/commit: "e19ea8fc"
+  ci.elma365.com/checksum: "4bf8811a"
+  ci.elma365.com/job_id: "2158623"
+  ci.elma365.com/timestamp: "2024-05-07T12:22:28+00:00"
+  ci.elma365.com/pipeline_id: "418629"

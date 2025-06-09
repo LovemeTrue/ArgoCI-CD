@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "integrations.name" . }}
+  labels:
+    {{- include "integrations.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-1"
+data:
+    # Rabbitmq
+    ELMA365_RABBITMQ_USER: {{ template "integrations.rmquser" . }}

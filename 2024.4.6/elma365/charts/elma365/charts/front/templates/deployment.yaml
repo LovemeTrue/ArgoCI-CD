@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "front.name" . }}
+  labels:
+    {{- include "front.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.global.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.global.autoscaling.enabled }}
+  replicas: {{ if or (kindIs "float64" .Values.replicaCount) (kindIs "int64" .Values.replicaCount) }}{{ .Values.replicaCount }}{{ else }}{{ .Values.global.replicaCount }}{{ end }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "front.selectorLabels" . | nindent 6 }}
+  strategy: {{- toYaml .Values.global.updateStrategy | nindent 4 }}
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: disabled
+        {{- with .Values.global.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        sidecar.istio.io/inject: "false"
+        {{- include "front.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      imagePullSecrets:
+        {{- if .Values.image.pullSecret }}
+        {{- range .Values.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- else }}
+        {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository | default .Values.global.image.repository }}/elma365/front/app:{{ .Values.images.app }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.global.http_port }}
+          env:
+            {{- range $key, $value := default dict .Values.appconfig }}
+            - name: {{ $key | snakecase | upper }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- if .Values.global.onpremiseVersion }}
+            - name: ELMA365_ONPREMISE_VERSION
+              value: {{ .Values.global.onpremiseVersion | quote}}
+            {{- end }}
+            {{- if .Values.global.onpremiseCommitHash }}
+            - name: ELMA365_ONPREMISE_COMMIT_HASH
+              value: {{ .Values.global.onpremiseCommitHash | quote }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: elma365-env-config
+                optional: true
+      {{- if .Values.global.helmLibrary }}
+          {{- include "helm-library.deployment.probes-front" . | indent 10 }}
+          {{- include "helm-library.deployment.resources" . | indent 10 }}
+          {{- include "helm-library.deployment.volumeMounts" . | indent 10 }}
+        {{- include "helm-library.deployment.volumes" . | indent 6 }}
+        {{- include "helm-library.deployment.terminationgraceperiod" . | indent 6 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}

@@ -1,0 +1,57 @@
+{{- if eq .Values.global.solution "onPremise" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bootstrap-company
+{{- if not .Values.global.chart }}
+  namespace: elma365-system
+{{- end }}
+  labels:
+    tier: elma365
+    action: bootstrap
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "15"
+    helm.sh/hook-delete-policy: hook-failed
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  template:
+    metadata:
+      labels:
+        sidecar.istio.io/inject: "false"
+      annotations:
+        linkerd.io/inject: disabled
+    spec:
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.jobGlobal.podSecurityContext" . | nindent 8 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}
+      imagePullSecrets:
+        {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+      containers:
+        - name: bootstrap
+          image: "{{ .Values.global.image.repository }}/docker/toolkit/curl:8.2.1"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          args:
+            - "/bin/sh"
+            - "-ec"
+            - 'sleep 60 && curl --fail -m {{ default 1800 .Values.global.activeDeadlineSeconds }} -X POST -H "Content-Type: application/json" --data @/etc/config/company.json http://vahter.{{ default "default" .Release.Namespace }}.svc:3000/internal/bootstrap'
+        {{- if .Values.global.helmLibrary }}
+          {{- include "helm-library.jobGlobal.resources" . | indent 10 }}
+        {{- end }}
+          volumeMounts:
+            - name: company-json
+              mountPath: /etc/config
+      volumes:
+        - name: company-json
+          secret:
+            secretName: elma365-company
+      restartPolicy: OnFailure
+  backoffLimit: 10
+  activeDeadlineSeconds: {{ default 1800 .Values.global.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: 120
+{{- end }}

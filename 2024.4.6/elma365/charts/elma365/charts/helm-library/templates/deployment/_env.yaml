@@ -1,0 +1,6 @@
+{{- define "helm-library.deployment.env" }}
+{{- if .Values.global.goMemLimit }}
+- name: GOMEMLIMIT
+  value: {{ include "gomemlimit" . | quote }}
+{{- end }}
+{{- end }}

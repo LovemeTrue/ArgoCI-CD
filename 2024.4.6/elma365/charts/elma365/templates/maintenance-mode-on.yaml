@@ -1,0 +1,47 @@
+{{- if or (eq .Values.global.solution "onPremise") (eq (toString .Values.global.maintenanceMode) "true") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: maintenance-mode-on
+  labels:
+    tier: elma365
+    action: maintain-off
+  annotations:
+    helm.sh/hook: pre-upgrade
+    helm.sh/hook-weight: "-10"
+    helm.sh/hook-delete-policy: before-hook-creation
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  template:
+    metadata:
+      labels:
+        sidecar.istio.io/inject: "false"
+      annotations:
+        linkerd.io/inject: disabled
+    spec:
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.jobGlobal.podSecurityContext" . | nindent 8 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}
+      imagePullSecrets:
+        {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+      containers:
+        - name: maintenance
+          image: "{{ .Values.global.image.repository }}/docker/toolkit/curl:8.2.1"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          args:
+            - "/bin/sh"
+            - "-ec"
+            - 'sleep 5 && curl --fail -m {{ default 1800 .Values.global.activeDeadlineSeconds }} -X PUT -H "Content-Type: application/json" http://deploy.{{ default "default" .Release.Namespace }}.svc:3000/migration/block'
+        {{- if .Values.global.helmLibrary }}
+          {{- include "helm-library.jobGlobal.resources" . | indent 10 }}
+        {{- end }}
+      restartPolicy: OnFailure
+  backoffLimit: 5
+  activeDeadlineSeconds: {{ default 1800 .Values.global.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: {{ default 600 .Values.global.setupJobTtlSecondsAfterFinished }}
+{{- end }}

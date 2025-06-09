@@ -1,0 +1,97 @@
+{{- $host := .Values.global.host -}}
+{{- if ne (toString .Values.global.openshift) "true" }}
+{{- if .Values.ingress.enabled }}
+{{- if semverCompare ">=1.19-0" (include "kubeVersion" .) }}
+apiVersion: networking.k8s.io/v1
+{{- else -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ template "fileprotection.name" . }}
+  labels:
+    {{- include "fileprotection.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.global.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if and .Values.global.ingress.ingressClassName (include "fileprotection.supportsIngressClassname" .) }}
+  ingressClassName: {{ .Values.global.ingress.ingressClassName | quote }}
+  {{- end }}
+  rules:
+  {{- if eq .Values.global.solution "onPremise" }}
+  {{- if or .Values.global.ingress.onpremiseTls.enabled .Values.global.ingress.hostEnabled }}
+    - host: {{ .Values.global.host }}
+      http:
+  {{- else }}
+    - http:
+  {{- end }}
+        paths:
+        - backend:
+            service:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              name: {{ template "fileprotection.name" . }}
+              port:
+                number: 3000
+              {{- else }}
+              serviceName: {{ template "fileprotection.name" . }}
+              servicePort: 3000
+              {{- end }}
+          path: /api/security/fileprotection(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              name: {{ template "fileprotection.name" . }}
+              port:
+                number: 3000
+              {{- else }}
+              serviceName: {{ template "fileprotection.name" . }}
+              servicePort: 3000
+              {{- end }}
+          path: /ext-api/ext-security/fileprotection(/|$)(.*)
+          pathType: ImplementationSpecific
+{{- include "ingressTLS" (list . .Values.global.host) | nindent 2 }}
+  {{- else -}}
+    {{- range $company := .Values.global.companies }}
+    - host: '{{ $company }}.{{ $host }}'
+      http:
+        paths:
+        - backend:
+            service:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              name: {{ template "fileprotection.name" $ }}
+              port:
+                number: 3000
+              {{- else }}
+              serviceName: {{ template "fileprotection.name" $ }}
+              servicePort: 3000
+              {{- end }}
+          path: /api/security/fileprotection(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              {{- if semverCompare ">=1.19-0" (include "kubeVersion" $) }}
+              name: {{ template "fileprotection.name" $ }}
+              port:
+                number: 3000
+              {{- else }}
+              serviceName: {{ template "fileprotection.name" $ }}
+              servicePort: 3000
+              {{- end }}
+          path: /ext-api/ext-security/fileprotection(/|$)(.*)
+          pathType: ImplementationSpecific
+    {{- end -}}
+  {{- end -}}
+  {{- $hosts := list }}
+  {{- range $company := .Values.global.companies }}
+  {{- $host := printf "%s.%s" $company $host }}
+  {{- $hosts = append $hosts $host }}
+  {{- end }}
+  {{- include "ingressTLS" (list . $hosts) | nindent 2 }}
+{{- end }}
+{{- end }}

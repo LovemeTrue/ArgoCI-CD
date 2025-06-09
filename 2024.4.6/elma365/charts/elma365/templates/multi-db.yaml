@@ -1,0 +1,72 @@
+{{- if .Values.db }}
+{{- if .Values.db.multi }}
+{{- range .Values.db.multi }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: multi-db-{{ .name }}
+  annotations:
+    helm.sh/hook: post-install, post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation # hook-failed
+    helm.sh/hook-weight: "5"
+spec:
+  backoffLimit: 30
+  template:
+    metadata:
+      labels:
+        sidecar.istio.io/inject: "false"
+      annotations:
+        linkerd.io/inject: disabled
+    spec:
+      {{- if $.Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.jobGlobal.podSecurityContext" $ | nindent 8 }}
+      {{- include "helm-library.deployment.scheduling" $ | indent 6 }}
+      {{- end }}
+      restartPolicy: OnFailure
+      containers:
+        - name: multi-db-{{ .name }}
+          image: curlimages/curl:8.2.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - -X
+            - PUT
+            - http://balancer:3000/clusters/
+            - -H
+            - 'Content-Type: application/json'
+            - -d
+            - >-
+              {
+                {{- if .id }} "__id":"{{ .id }}",{{ end }}
+                "__description": "{{ .name }}"
+                {{- if .psqlUrl }}
+                ,
+                "sql_database": {
+                  "main": {
+                    "connectionString":"{{ .psqlUrl }}",
+                    "connectionTimeout":{{ default 0 .connectionTimeout }},
+                    "minOpenConnections":{{ default 10 .minOpenConnections }},
+                    "maxOpenConnections":{{ default 100 .maxOpenConnections }},
+                    "maxConnectionLifetime":{{ default 300 .maxConnectionLifetime }}
+                  },
+                  "replicas": {
+                    "connectionString":"{{ default "" .roPsqlUrl }}",
+                    "connectionTimeout":{{ default 0 .roConnectionTimeout }},
+                    "minOpenConnections":{{ default 10 .roMinOpenConnections }},
+                    "maxOpenConnections":{{ default 100 .roMaxOpenConnections }},
+                    "maxConnectionLifetime":{{ default 300 .roMaxConnectionLifetime }}
+                  }
+                }
+                {{- end }}
+                {{- if .mongoUrl }}
+                ,
+                "mongo_database": {
+                  "connectionString": {{ default "" .mongoUrl | quote }},
+                  "disableTracing": {{ default "false" .mongoDisableTracing }}
+                }
+                {{- end }}
+              }
+---
+{{- end }}
+{{- end }}
+{{- end }}

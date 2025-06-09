@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "hydra-adaptor.name" . }}
+  labels:
+    {{- include "hydra-adaptor.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.global.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "hydra-adaptor.selectorLabels" . | nindent 6 }}
+  strategy: {{- toYaml .Values.global.updateStrategy | nindent 4 }}
+  template:
+    metadata:
+      labels:
+        {{- include "hydra-adaptor.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      imagePullSecrets:
+        {{- if .Values.image.pullSecret }}
+        {{- range .Values.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- else }}
+        {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository | default .Values.global.image.repository }}/elma365/hydra-adaptor/service:{{ .Values.images.service }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.global.grpc_port }}
+            - name: http
+              containerPort: {{ .Values.global.http_port }}
+          env:
+            - name: ELMA365_HYDRA_ADMIN_URL
+              value: {{ tpl ( .Values.appconfig.hydraAdminURL | quote ) . }}
+            - name: ELMA365_LOGIN_ENDPOINT
+              value: {{ tpl ( .Values.appconfig.loginEndpoint | quote ) . }}
+            - name: ELMA365_VAHTER_COOKIE_NAME
+              value: {{ .Values.appconfig.vahterCookieName | quote }}
+            - name: ELMA365_CORS_ALLOWED_HOSTS
+              value: {{ join "," (pluck .Values.global.env .Values.appconfig.corsHosts | first | default .Values.appconfig.corsHosts._default ) | quote }}
+          envFrom:
+            - configMapRef:
+                name: elma365-env-config
+                optional: true
+            - secretRef:
+                name: elma365-db-connections
+                optional: true
+      {{- if .Values.global.helmLibrary }}
+          {{- include "helm-library.deployment.probes" . | indent 10 }}
+          {{- include "helm-library.deployment.resources" . | indent 10 }}
+          {{- include "helm-library.deployment.volumeMounts" . | indent 10 }}
+        {{- include "helm-library.deployment.volumes" . | indent 6 }}
+        {{- include "helm-library.deployment.terminationgraceperiod" . | indent 6 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}

@@ -1,0 +1,103 @@
+global:
+  namespace: ""
+  host: elma365.ru
+  edition: "standard"
+  solution: "onPremise"
+  env: "production"
+  skipSslVerify: false
+  labels: {}
+  annotations: {}
+  http_port: 3000
+  grpc_port: 5000
+  http_otlp_port: 3001
+  http_metrics: 3100
+  replicaCount: 1
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  backoffLimit: 5
+  image:
+    repository: dreg.elewise.com:5005
+    pullPolicy: IfNotPresent
+    pullSecret:
+      - regsecret
+      - yandexsecret
+      - customsecret
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+  holdingEnabled: false
+  monitoring:
+    enabled: false
+    namespace: ""
+    provisioner: "k8s"
+    dashboard:
+      enabled: false
+    alerts:
+      enabled: false
+    metrics:
+      interval: 30s
+    lowcode:
+      metricExportEnabled: false
+  resourceLimits: false
+  resourcesJobs: {}
+  resources: {}
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 2
+    failureThreshold: 1
+    successThreshold: 1
+  readinessProbe:
+    httpGet:
+      path: /readyz
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 2
+    failureThreshold: 1
+    successThreshold: 1
+  podSecurityContext: {}
+  startupProbe: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+images:
+  service: ci-101383ae
+image:
+  repository: {}
+  pullSecret: {}
+nameOverride: otelier
+podSecurityContext: {}
+podAnnotations: {}
+autoscaling: {}
+resourcesJobs: {}
+resources: {}
+livenessProbe: {}
+readinessProbe: {}
+startupProbe: {}
+otelier:
+  labels:
+    app: otelier
+ingress:
+  annotations: {}
+  gzip:
+    enabled: true
+    compLevel: 5
+    minLength: 1024
+appconfig:
+  lowcode:
+    metricExportPort: 3300
+annotations:
+  ci.elma365.com/commit: "575b5dc9"
+  ci.elma365.com/checksum: "101383ae"
+  ci.elma365.com/job_id: "2146748"
+  ci.elma365.com/timestamp: "2024-05-03T09:16:19+00:00"
+  ci.elma365.com/pipeline_id: "416616"

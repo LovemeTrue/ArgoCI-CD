@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 2024.4.6
+dependencies:
+- name: elma365
+  repository: ""
+description: Elma365 full application chart
+name: elma365
+type: application
+version: 2024.4.6

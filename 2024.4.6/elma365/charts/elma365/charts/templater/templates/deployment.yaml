@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "templater.name" . }}
+  labels:
+    {{- include "templater.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.global.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.global.autoscaling.enabled }}
+  replicas: {{ if or (kindIs "float64" .Values.replicaCount) (kindIs "int64" .Values.replicaCount) }}{{ .Values.replicaCount }}{{ else }}{{ .Values.global.replicaCount }}{{ end }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "templater.selectorLabels" . | nindent 6 }}
+  strategy: {{- toYaml .Values.global.updateStrategy | nindent 4 }}
+  template:
+    metadata:
+      labels:
+        {{- include "templater.selectorLabels" . | nindent 8 }}
+      annotations:
+        {{- with .Values.global.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      imagePullSecrets:
+        {{- if .Values.image.pullSecret }}
+        {{- range .Values.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- else }}
+        {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- end }}
+      containers:      
+        - name: dottemplater
+          image: "{{ .Values.image.repository | default .Values.global.image.repository }}/elma365/templater/dottemplater:{{ .Values.images.dottemplater }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          env:
+            - name: ELMA365_LOG_LEVEL
+              value: "ERROR"
+            - name: ELMA365_LOGGING__LOGLEVEL__DEFAULT
+              value: {{ .Values.logging.default }}
+            - name: ELMA365_LOGGING__LOGLEVEL__MICROSOFT
+              value: {{ .Values.logging.microsoft }}
+            - name: ELMA365_LOGGING__LOGLEVEL__MICROSOFT.HOSTING.LIFETIME
+              value: {{ .Values.logging.default }}
+            - name: ELMA365_ALLOWEDHOSTS
+              value: '*'
+            - name: ELMA365_SKIP_SSL_VERIFY
+              value: {{ .Values.global.skipSslVerify | quote }}
+          ports:
+          - name: http-dot
+            containerPort: {{ .Values.global.http_port_dot }}
+          envFrom:
+            - configMapRef:
+                name: elma365-env-config
+                optional: true
+            - secretRef:
+                name: elma365-db-connections
+                optional: true
+      {{- if .Values.global.helmLibrary }}
+          {{- include "helm-library.deployment.probes-dottemplater" . | indent 10 }}
+          {{- include "helm-library.deployment.resources-dottemplater" . | indent 10 }}
+          {{- include "helm-library.deployment.volumeMounts-dottemplater" . | indent 10 }}
+      {{- end }}  
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository | default .Values.global.image.repository }}/elma365/templater/gateway:{{ .Values.images.gateway }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.global.grpc_port }}
+            - name: http
+              containerPort: {{ .Values.global.http_port }}
+          env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: ELMA365_RABBITMQ_USER
+              value: {{ template "templater.rmquser" . }}
+            - name: ELMA365_RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: templater
+                  key: rabbitmq_password
+            - name: ELMA365_SKIP_SSL_VERIFY
+              value: {{ .Values.global.skipSslVerify | quote }}
+          envFrom:
+            - configMapRef:
+                name: elma365-env-config
+                optional: true
+            - secretRef:
+                name: elma365-db-connections
+                optional: true
+      {{- if .Values.global.helmLibrary }}
+          {{- include "helm-library.deployment.probes" . | indent 10 }}
+          {{- include "helm-library.deployment.resources" . | indent 10 }}
+          {{- include "helm-library.deployment.volumeMounts-dottemplater" . | indent 10 }}
+        {{- include "helm-library.deployment.volumes-dottemplater" . | indent 6 }}
+        {{- include "helm-library.deployment.terminationgraceperiod" . | indent 6 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}    

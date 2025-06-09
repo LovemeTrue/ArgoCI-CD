@@ -1,0 +1,198 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: elma365-db-connections
+  labels:
+    tier: elma365
+    configuration: global
+  annotations:
+    {{- if .Values.global.secretCreationHook }}
+    argocd.argoproj.io/hook: Skip
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+    {{- else }}
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-30"
+    helm.sh/hook-delete-policy: before-hook-creation
+    {{- end }}
+type: Opaque
+data:
+
+{{- with .Values.db }}
+
+{{- if ne (toString .secrets) "true" }}
+  # CONNECTION STRINGS sources are Values
+
+  # DEPRECATED db connections
+  {{- if .psql }}
+  ELMA365_POSTGRES_DB_NAME:  {{ default "" .psql.dbName | b64enc | quote }}   # deprecated
+  ELMA365_POSTGRES_USER:     {{ default "" .psql.user | b64enc | quote }}     # deprecated
+  ELMA365_POSTGRES_PASSWORD: {{ default "" .psql.password | b64enc | quote }} # deprecated
+  {{- end }}
+  {{- if .rmq }}
+  ELMA365_RABBITMQ_HOST:     {{ default "rabbitmq" .rmq.host | b64enc | quote }} # deprecated
+  ELMA365_RABBITMQ_VH_NAME:  {{ default $.Release.Namespace .rmq.vhName | b64enc | quote }} # deprecated
+  ELMA365_RABBITMQ_USER:     {{ default "" .rmq.user | b64enc | quote }}         # deprecated
+  ELMA365_RABBITMQ_PASSWORD: {{ default "" .rmq.password | b64enc | quote }}     # deprecated
+  {{- end }}
+  {{- if .mongo }}
+  ELMA365_MONGO_DB_NAME:     {{ default "" .mongo.dbName | b64enc | quote }}   # deprecated
+  ELMA365_MONGO_USER:        {{ default "" .mongo.user | b64enc | quote }}     # deprecated
+  ELMA365_MONGO_PASSWORD:    {{ default "" .mongo.password | b64enc | quote }} # deprecated
+  {{- end }}
+
+  # CURRENT db connections
+  PSQL_URL:                  {{ default "" .psqlUrl   | b64enc | quote }}
+  RO_POSTGRES_URL:           {{ default "" .roPsqlUrl | b64enc | quote }}
+  ELMA365_POOL_POSTGRES_URL: {{ default "" .roPsqlUrl | b64enc | quote }}
+  MONGO_URL:                 {{ default "" .mongoUrl  | b64enc | quote }}
+  AMQP_URL:                  {{ default "" .amqpUrl   | b64enc | quote }}
+  REDIS_URL:                 {{ default "" .redisUrl  | b64enc | quote }}
+  VAHTER_MONGO_URL:          {{ default "" .vahterMongoUrl | b64enc | quote }}
+  {{- if .publicPsqlUrl }}
+  ELMA365_PUBLIC_DB_CONNECTION_STRING: {{ default "" .publicPsqlUrl | b64enc | quote }}
+  {{- end }}
+  {{- if .publicMongoUrl }}
+  ELMA365_PUBLIC_MONGO_URL:  {{ default "" .publicMongoUrl | b64enc | quote }}
+  {{- end }}
+  {{- if .clusterRegistryConnectionString }}
+  ELMA365_CLUSTER_REGISTRY_CONNECTION_STRING: {{ default "" .clusterRegistryConnectionString | b64enc | quote }}
+  {{- end }}
+  {{- if .amqpManagementUrl }}
+  ELMA365_AMQP_MANAGEMENT_URL: {{ default "" .amqpManagementUrl | b64enc | quote }} # tcp://192.168.18.23:15672
+  {{- end }}
+  {{- if .amqpUrl }}
+  ELMA365_AMQP_URL:          {{ default "" .amqpUrl | b64enc | quote }}
+  {{- end }}
+
+  # MULTI-connections to DBs
+  {{- range .multi }}
+  {{- if .psqlUrl }}
+  PSQL_URL_{{ .name }}:    {{ default "" .psqlUrl | b64enc | quote }}
+  {{- end }}
+  {{- if .roPsqlUrl }}
+  RO_PSQL_URL_{{ .name }}: {{ default "" .roPsqlUrl | b64enc | quote }}
+  {{- end }}
+  {{- if .mongoUrl }}
+  MONGO_URL_{{ .name }}:   {{ default "" .mongoUrl | b64enc | quote }}
+  {{- end }}
+  {{- if .redisUrl }}
+  REDIS_URL_{{ .name }}:   {{ default "" .redisUrl | b64enc | quote }}
+  {{- end }}
+  {{- end }}
+
+  # S3
+  {{- with .s3 }}
+  S3_BACKEND_ADDRESS: {{ .backend.address | b64enc | quote }}
+  S3_REGION:          {{ .backend.region | b64enc | quote }}
+  S3_BUCKET:          {{ .bucket | b64enc | quote }}
+  S3_KEY:             {{ .accesskeyid | b64enc | quote }}
+  S3_SECRET:          {{ .secretaccesskey | b64enc | quote }}
+  S3_SSL_ENABLED:     {{ .ssl.enabled | b64enc | quote }}
+  S3_UPLOAD_METHOD:   {{ .method | b64enc | quote }}
+  {{- if .virtualHostedStyle }}
+  S3_VIRTUAL_HOSTED_STYLE_ENABLED : {{ default "false" .virtualHostedStyle.enabled | b64enc | quote }}
+  {{- end }}
+  S3_DUMP_URL:        {{ default "" .dumpurl | b64enc | quote }}
+  S3_INTERCLUSTER_BUCKET: {{ default "" .interclusterbucket | b64enc | quote }}
+  {{- end }}
+
+{{- else }}
+  # CONNECTION STRINGS sources are Secrets
+
+  {{- if .psqlSecret }}
+  {{- $psqlSecret := (lookup "v1" "Secret" .Release.Namespace .psqlSecret) }}
+  PSQL_URL: {{ $psqlSecret.data.PSQL_URL | default (.psqlUrl | b64enc | quote) }}
+  {{- else }}
+  PSQL_URL: {{ default "" .psqlUrl | b64enc | quote }}
+  {{- end }}
+
+  {{- if .roPsqlSecret }}
+  {{- $roPsqlSecret := (lookup "v1" "Secret" .Release.Namespace .roPsqlSecret) }}
+  RO_POSTGRES_URL: {{ $roPsqlSecret.data.RO_POSTGRES_URL | default (.roPsqlUrl | b64enc | quote) }}
+  {{- else }}
+  RO_POSTGRES_URL: {{ default "" .roPsqlUrl | b64enc | quote }}
+  {{- end }}
+
+  {{- if .mongoSecret }}
+  {{- $mongoSecret := (lookup "v1" "Secret" .Release.Namespace .mongoSecret) }}
+  MONGO_URL: {{ $mongoSecret.data.MONGO_URL | default (.mongoUrl | b64enc | quote) }}
+  {{- else }}
+  MONGO_URL: {{ default "" .mongoUrl | b64enc | quote }}
+  {{- end }}
+
+  {{- if .vahterMongoSecret }}
+  {{- $vahterMongoSecret := (lookup "v1" "Secret" .Release.Namespace .vahterMongoSecret) }}
+  VAHTER_MONGO_URL: {{ $vahterMongoSecret.data.VAHTER_MONGO_URL | default (.vahterMongoUrl | b64enc | quote) }}
+  {{- else }}
+  VAHTER_MONGO_URL: {{ default "" .vahterMongoUrl | b64enc | quote }}
+  {{- end }}
+
+  {{- if .amqpSecret }}
+  {{- $amqpSecret := (lookup "v1" "Secret" .Release.Namespace .amqpSecret) }}
+  AMQP_URL: {{ $amqpSecret.data.AMQP_URL | default (.amqpUrl | b64enc | quote) }}
+  {{- else }}
+  AMQP_URL: {{ default "" .amqpUrl | b64enc | quote }}
+  {{- end }}
+
+  {{- if .redisSecret }}
+  {{- $redisSecret := (lookup "v1" "Secret" .Release.Namespace .redisSecret) }}
+  REDIS_URL: {{ $redisSecret.data.REDIS_URL | default (.redisUrl | b64enc | quote) }}
+  {{- else }}
+  REDIS_URL: {{ default "" .redisUrl | b64enc | quote }}
+  {{- end }}
+
+  {{- if .multi }}
+  {{- if .multiSecret }}
+  {{- $multiSecret := (lookup "v1" "Secret" .Release.Namespace .multiSecret) }}
+  {{- $secretData := (get $multiSecret "data") }}
+  {{- range $key, $value := $secretData}}
+  {{- if or (regexMatch "^PSQL_URL_.*$" $key) (regexMatch "^RO_PSQL_URL_.*$" $key) }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}
+  {{- else }}
+  {{- range .multi }}
+  {{- if .psqlUrl }}
+  PSQL_URL_{{ .name }}:    {{ default "" .psqlUrl | b64enc | quote }}
+  {{- end }}
+  {{- if .roPsqlUrl }}
+  RO_PSQL_URL_{{ .name }}: {{ default "" .roPsqlUrl | b64enc | quote }}
+  {{- end }}
+  {{- if .mongoUrl }}
+  MONGO_URL_{{ .name }}:   {{ default "" .mongoUrl | b64enc | quote }}
+  {{- end }}
+  {{- if .redisUrl }}
+  REDIS_URL_{{ .name }}:   {{ default "" .redisUrl | b64enc | quote }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+
+  {{- if .s3Secret }}
+  {{- $s3Secret := (lookup "v1" "Secret" .Release.Namespace .s3Secret) }}
+  S3_BACKEND_ADDRESS:              {{ $s3Secret.data.S3_BACKEND_ADDRESS | default (.s3.backend.address | b64enc | quote) }}
+  S3_REGION:                       {{ $s3Secret.data.S3_REGION | default (.s3.backend.region | b64enc | quote) }}
+  S3_KEY:                          {{ $s3Secret.data.S3_KEY | default (.s3.accesskeyid | b64enc | quote) }}
+  S3_SECRET:                       {{ $s3Secret.data.S3_SECRET | default (.s3.secretaccesskey | b64enc | quote) }}
+  S3_BUCKET:                       {{ $s3Secret.data.S3_BUCKET | default (.s3.bucket | b64enc | quote) }}
+  S3_SSL_ENABLED:                  {{ $s3Secret.data.S3_SSL_ENABLED | default (.s3.ssl.enabled | b64enc | quote) }}
+  S3_UPLOAD_METHOD:                {{ $s3Secret.data.S3_UPLOAD_METHOD | default (.s3.method | b64enc | quote) }}
+  S3_VIRTUAL_HOSTED_STYLE_ENABLED: {{ $s3Secret.data.S3_VIRTUAL_HOSTED_STYLE_ENABLED | default (.s3.virtualHostedStyle.enabled | b64enc | quote) }}
+  S3_DUMP_URL:                     {{ $s3Secret.data.S3_DUMP_URL | default (.s3.dumpurl | b64enc | quote) }}
+  S3_INTERCLUSTER_BUCKET:          {{ default "" .interclusterbucket | b64enc | quote }}
+  {{- else }}
+  S3_BACKEND_ADDRESS:              {{ .backend.address | b64enc | quote }}
+  S3_REGION:                       {{ .backend.region | b64enc | quote }}
+  S3_BUCKET:                       {{ .bucket | b64enc | quote }}
+  S3_KEY:                          {{ .accesskeyid | b64enc | quote }}
+  S3_SECRET:                       {{ .secretaccesskey | b64enc | quote }}
+  S3_SSL_ENABLED:                  {{ .ssl.enabled | b64enc | quote }}
+  S3_UPLOAD_METHOD:                {{ .method | b64enc | quote }}
+  S3_VIRTUAL_HOSTED_STYLE_ENABLED: {{ default "false" .virtualHostedStyle.enabled | b64enc | quote }}
+  S3_DUMP_URL:                     {{ default "" .dumpurl | b64enc | quote }}
+  S3_INTERCLUSTER_BUCKET:          {{ default "" .interclusterbucket | b64enc | quote }}
+  {{- end }}
+
+{{- end }}
+
+{{- end }}

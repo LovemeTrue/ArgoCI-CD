@@ -1,0 +1,151 @@
+{{- if eq .Values.global.solution "onPremise" }}
+
+{{- $image := "/elma365/databases/migrator:1.0.22" }}
+{{- $global := .Values.global | default dict }}
+{{- $mode := dig "migrations" "mode" "Job" $global }}
+
+{{- if eq $mode "old" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate
+{{- if not .Values.global.chart }}
+  namespace: elma365-system
+{{- end }}
+  labels:
+    tier: elma365
+    action: bootstrap
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: disabled
+    spec:
+      imagePullSecrets:
+        {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.jobGlobal.podSecurityContext" . | nindent 8 }}
+      {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}
+      containers:
+        - name: bootstrap
+          image: "{{ .Values.global.image.repository }}/docker/toolkit/curl:8.2.1"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          args:
+            - "/bin/sh"
+            - "-ec"
+            - 'sleep 15 && curl --fail -m {{ default 3000 .Values.global.activeDeadlineSeconds }} -X PUT -H "Content-Type: application/json" http://deploy.{{ default "default" .Release.Namespace }}.svc:3000/migration/init'
+      restartPolicy: OnFailure
+  backoffLimit: 5
+  activeDeadlineSeconds: {{ default 3000 .Values.global.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: 120
+
+{{- else }}
+
+{{- if ne $mode "CronJob" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrator
+  labels:
+    tier: elma365
+    action: migrator
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: disabled
+    spec:
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.jobGlobal.podSecurityContext" . | nindent 8 }}
+      {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}
+      imagePullSecrets:
+        {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+      containers:
+        - name: service
+          image: {{ .Values.global.image.repository }}{{ $image }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          env:
+            - name: K8S_NS
+              value: {{ default "default" .Release.Namespace }}
+            - name: CURL_TIMEOUT
+              {{- $timeout := dig "migrations" "timeout" "3000" $global }}
+              value: {{ $timeout | quote }}
+          command: ["/bin/bash", "-ec"]
+          args:
+            - |
+              sleep 5 && ./opt/elma365/migrator.sh
+              sleep 5 && curl --fail -m {{ default 1800 .Values.global.activeDeadlineSeconds }} -X PUT -H "Content-Type: application/json" http://deploy.{{ default "default" .Release.Namespace }}.svc:3000/migration/unblock
+        {{- if .Values.global.helmLibrary }}
+          {{- include "helm-library.jobGlobal.resources" . | indent 10 }}
+        {{- end }}
+      restartPolicy: OnFailure
+  backoffLimit: 5
+  activeDeadlineSeconds: {{ dig "migrations" "timeout" "3000" $global }}
+  ttlSecondsAfterFinished: 120
+
+{{- else }}
+
+{{- if semverCompare ">=1.21-0" (include "kubeVersion" .) }}
+apiVersion: batch/v1
+{{- else }}
+apiVersion: batch/v1beta1
+{{- end }}
+kind: CronJob
+metadata:
+  name: migrator
+spec:
+  schedule: {{ dig "migrations" "schedule" "0 * * * *" $global }}
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            linkerd.io/inject: disabled
+        spec:
+          imagePullSecrets:
+          {{- range .Values.global.image.pullSecret }}
+            - name: {{ . }}
+          {{- end }}
+          containers:
+            - name: service
+              image: {{ .Values.global.image.repository }}{{ $image }}
+              imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+              env:
+                - name: K8S_NS
+                  value: {{ default "default" .Release.Namespace }}
+                - name: CURL_TIMEOUT
+                  value: {{ dig "migrations" "timeout" "3000 | quote" $global }}
+              command:
+                - /bin/bash
+                - -ec
+                - sleep 15 && ./opt/elma365/migrator.sh
+            {{- if .Values.global.helmLibrary }}
+              {{- include "helm-library.cronjobsGlobal.resources" . | indent 14 }}
+            {{- end }}
+          restartPolicy: OnFailure
+
+{{- end }}
+{{- end }}
+{{- end }}

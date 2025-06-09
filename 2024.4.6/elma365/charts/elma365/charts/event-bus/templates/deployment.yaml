@@ -1,0 +1,86 @@
+{{- $releaseName := .Release.Name }}
+{{- $name := include "event-bus.name" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "event-bus.name" . }}
+  labels:
+    {{- include "event-bus.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.global.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ include "event-bus.replicaCount" . }}
+  selector:
+    matchLabels:
+      {{- include "event-bus.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "event-bus.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.job.podSecurityContext" . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: event-bus-sa
+      imagePullSecrets:
+        {{- if .Values.image.pullSecret }}
+        {{- range .Values.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- else }}
+        {{- range .Values.global.image.pullSecret }}
+        - name: {{ . }}
+        {{- end }}
+        {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository | default .Values.global.image.repository }}/elma365/event_bus/events:{{ .Values.images.events }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.global.grpc_port }}
+            - name: http
+              containerPort: {{ .Values.global.http_port }}
+          env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: NAMESPACE
+              value: {{ .Release.Namespace | quote }}
+            - name: ELMA365_RABBITMQ_USER
+              value: {{ template "event-bus.rmquser" . }}
+            - name: ELMA365_RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: eventbus
+                  key: rabbitmq_password
+            - name: SCHEMA
+              value: {{ default "public" .Values.appconfig.schema }}
+          envFrom:
+            - configMapRef:
+                name: elma365-env-config
+                optional: true
+            - secretRef:
+                name: elma365-db-connections
+                optional: true
+      {{- if .Values.global.helmLibrary }}
+          {{- include "helm-library.deployment.probes" . | indent 10 }}
+          {{- include "helm-library.deployment.resources" . | indent 10 }}
+          {{- include "helm-library.deployment.volumeMounts" . | indent 10 }}
+        {{- include "helm-library.deployment.volumes" . | indent 6 }}
+        {{- include "helm-library.deployment.terminationgraceperiod" . | indent 6 }}
+        {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}
