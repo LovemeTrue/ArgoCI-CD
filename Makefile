@@ -40,11 +40,11 @@ clean-argocd:
 		| sed 's/"finalizers": \[[^]]\+\]/"finalizers": []/' \
 		| kubectl replace --raw /api/v1/namespaces/elma365/finalize -f - || true
 	
-		@echo "🗑 Удаляем оставшиеся ресурсы из elma365 (если есть)..."
-	@kubectl delete all --all -n elma365 --ignore-not-found || true
-	@kubectl delete configmap --all -n elma365 --ignore-not-found || true
-	@kubectl delete secret --all -n elma365 --ignore-not-found || true
-	@kubectl delete ns elma365 --ignore-not-found=true || true
+	# @echo "🗑 Удаляем оставшиеся ресурсы из elma365 (если есть)..."
+	# @kubectl delete all --all -n elma365 --ignore-not-found || true
+	# @kubectl delete configmap --all -n elma365 --ignore-not-found || true
+	# @kubectl delete secret --all -n elma365 --ignore-not-found || true
+	# @kubectl delete ns elma365 --ignore-not-found=true || true
 	
 
 	@echo "🗑 Удаляем namespace elma365-dbs (если существует)..."
