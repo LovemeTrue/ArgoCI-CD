@@ -19,6 +19,14 @@ KUBECONFIG=/home/panov/.kube/kind_conf
 clean-argocd:
 	@echo "🧹 Чистим ArgoCD-приложения и неймспейсы перед релизом ($(VERSION))..."
 
+	@echo "🧨 Удаляем ArgoCD приложения..."
+	@argocd app delete elma365-$(VERSION) --server cd.apps.argoproj.io --grpc-web --cascade=false --yes || true
+	@argocd app delete elma365-dbs --server cd.apps.argoproj.io  --grpc-web --cascade=false --yes || true
+
+	@echo "🔄 Обновляем root-app через hard-refresh..."
+	@argocd app get root-app  --server cd.apps.argoproj.io --grpc-web --hard-refresh
+	@argocd app sync root-app --server cd.apps.argoproj.io --grpc-web
+
 	@echo "🔁 Скейлим deployments в namespace=elma365 до 0 (если есть)..."
 	@kubectl get deploy -n elma365 -o name 2>/dev/null | xargs -r -n1 kubectl scale -n elma365 --replicas=0 || true
 
