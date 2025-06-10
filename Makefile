@@ -77,9 +77,13 @@ clean-argocd:
 
 
 	@echo "🧨 Удаляем ArgoCD приложения..."
+	@argocd login 192.168.29.24:32552 --username admin --password bGcGZiFiR7hUEmvX --server 192.168.29.24:32552 --grpc-web
+
 	@argocd app delete elma365-$(VERSION) --server 192.168.29.24:31843 --grpc-web --cascade=false --yes || true
 	@argocd app delete elma365-dbs --server 192.168.29.24:31843  --grpc-web --cascade=false --yes || true
 	@argocd app delete root-app --server 192.168.29.24:31843  --grpc-web --cascade=false --yes || true
+	
+	@argocd login 192.168.29.24:32552 --username admin --password bGcGZiFiR7hUEmvX --server 192.168.29.24:32552 --grpc-web
 
 	@kubectl apply -f root-app.yaml
 

@@ -20,10 +20,10 @@ if kubectl get namespace argocd &> /dev/null; then
 
     # Удаление оставшихся ресурсов
     kubectl delete all,secret,configmap,serviceaccount,role,rolebinding --all -n argocd --ignore-not-found
-    kubectl get all -n argocd -o json 2>/dev/null \
-	| jq '.items[] | select(.metadata.finalizers != null) | select([.metadata.finalizers[] | contains("argocd.argoproj.io/hook-finalizer")] | any)' \
-	| jq -r '.kind + "/" + .metadata.name' \
-	| xargs -r -n1 -I{} kubectl patch -n argocd {} -p '{"metadata":{"finalizers":[]}}' --type=merge || true
+    kubectl get namespace "argocd" -o json \
+  | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
+  | kubectl replace --raw /api/v1/namespaces/argocd/finalize -f -
+
     kubectl delete namespace argocd --ignore-not-found
     echo -e "\033[1;32m[✓] Ресурсы Argo CD удалены из кластера\033[0m"
 else
