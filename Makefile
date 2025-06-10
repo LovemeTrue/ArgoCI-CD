@@ -78,6 +78,7 @@ clean-argocd:
 	@echo "🗑 Удаляем манифесты elma365 приложений..."
 	@rm -f $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs.yaml || true
 
+	@kubectl apply -f root-app.yaml
 	@echo "🧨 Удаляем ArgoCD приложения..."
 	@argocd app delete elma365-$(VERSION) --server cd.apps.argoproj.io --grpc-web --cascade=false --yes || true
 	@argocd app delete elma365-dbs --server cd.apps.argoproj.io  --grpc-web --cascade=false --yes || true
