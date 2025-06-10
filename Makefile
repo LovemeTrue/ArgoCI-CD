@@ -19,14 +19,6 @@ KUBECONFIG=/home/panov/.kube/kind_conf
 clean-argocd:
 	@echo "🧹 Чистим ArgoCD-приложения и неймспейсы перед релизом ($(VERSION))..."
 
-	@echo "🧨 Удаляем ArgoCD приложения..."
-	@argocd app delete elma365-$(VERSION) --server cd.apps.argoproj.io --grpc-web --cascade=false --yes || true
-	@argocd app delete elma365-dbs --server cd.apps.argoproj.io  --grpc-web --cascade=false --yes || true
-
-	# @echo "🔄 Обновляем root-app через hard-refresh..."
-	# @argocd app get root-app  --server cd.apps.argoproj.io --grpc-web --hard-refresh
-	# @argocd app sync root-app --server cd.apps.argoproj.io --grpc-web
-
 	@echo "🔁 Скейлим deployments в namespace=elma365 до 0 (если есть)..."
 	@kubectl get deploy -n elma365 -o name 2>/dev/null | xargs -r -n1 kubectl scale -n elma365 --replicas=0 || true
 
@@ -75,13 +67,19 @@ clean-argocd:
 	@echo "📜 Создаём configMap с rootCA в elma365..."
 	@kubectl create configmap elma365-onpremise-ca --from-file=elma365-onpremise-ca.pem=./ssl/rootCA.pem -n elma365
 
+	@argocd login 192.168.29.24:31843 \
+		--username admin \
+		--grpc-web \
+		--password lazypeon \
+		--insecure
 	@echo "🗑 Удаляем манифесты elma365 приложений..."
 	@rm -f $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs.yaml || true
 
+
 	@echo "🧨 Удаляем ArgoCD приложения..."
-	@argocd app delete elma365-$(VERSION) --server cd.apps.argoproj.io --grpc-web --cascade=false --yes || true
-	@argocd app delete elma365-dbs --server cd.apps.argoproj.io  --grpc-web --cascade=false --yes || true
-	@argocd app delete root-app --server cd.apps.argoproj.io  --grpc-web --cascade=false --yes || true
+	@argocd app delete elma365-$(VERSION) --server 192.168.29.24:31843 --grpc-web --cascade=false --yes || true
+	@argocd app delete elma365-dbs --server 192.168.29.24:31843  --grpc-web --cascade=false --yes || true
+	@argocd app delete root-app --server 192.168.29.24:31843  --grpc-web --cascade=false --yes || true
 
 	@kubectl apply -f root-app.yaml
 
