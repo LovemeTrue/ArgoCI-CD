@@ -44,7 +44,7 @@ clean-argocd:
 	# @kubectl delete all --all -n elma365 --ignore-not-found || true
 	# @kubectl delete configmap --all -n elma365 --ignore-not-found || true
 	# @kubectl delete secret --all -n elma365 --ignore-not-found || true
-	# @kubectl delete ns elma365 --ignore-not-found=true || true
+	@kubectl delete ns elma365 --ignore-not-found=true || true
 	
 
 	@echo "🗑 Удаляем namespace elma365-dbs (если существует)..."
