@@ -54,12 +54,15 @@ clean-argocd:
 
 	@echo "⚙️ Патчим nodegroup master с maxPods=200..."
 	@kubectl patch nodegroup master --type=merge -p '{"spec":{"kubelet":{"maxPods":200}}}' || true
-
+	
 	@echo "🔐 Создаём TLS secret в namespace elma365-dbs..."
+	@kubectl delete secret elma365-onpremise-tls -n elma365-dbs --ignore-not-found
 	@kubectl create secret tls elma365-onpremise-tls --cert=./ssl/kind.elewise.local.crt --key=./ssl/kind.elewise.local.key -n elma365-dbs
 	@echo "🔐 Создаём TLS secret в namespace elma365..."
+	@kubectl delete secret elma365-onpremise-tls -n elma365 --ignore-not-found
 	@kubectl create secret tls elma365-onpremise-tls --cert=./ssl/kind.elewise.local.crt --key=./ssl/kind.elewise.local.key -n elma365 
 	@echo "📜 Создаём configMap с rootCA в elma365..."
+	@kubectl delete cm elma365-onpremise-ca -n elma365 --ignore-not-found
 	@kubectl create configmap elma365-onpremise-ca --from-file=elma365-onpremise-ca.pem=./ssl/rootCA.pem -n elma365
 
 
