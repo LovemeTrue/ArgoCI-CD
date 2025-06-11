@@ -1,9 +1,0 @@
-apiVersion: v2
-appVersion: 0.1.0
-description: Сервис отслеживания жизненного статуса компаний
-home: https://git.elewise.com/elma365/balancer
-name: balancer
-sources:
-- dreg.elewise.com:5005/elma365/balancer
-type: application
-version: 0.1.0

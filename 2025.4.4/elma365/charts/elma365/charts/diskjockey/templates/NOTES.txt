@@ -1,1 +1,0 @@
-Service for S3 communication and storing File metadata

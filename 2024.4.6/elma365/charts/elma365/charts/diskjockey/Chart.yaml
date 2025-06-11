@@ -1,9 +1,0 @@
-apiVersion: v2
-appVersion: "1.0"
-description: ELMA365 disk service
-home: https://git.elewise.com/elma365/diskjockey
-name: diskjockey
-sources:
-- dreg.elewise.com:5005/elma365/diskjockey
-type: application
-version: 0.1.0

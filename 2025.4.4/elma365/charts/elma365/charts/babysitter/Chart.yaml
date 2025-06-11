@@ -1,9 +1,0 @@
-apiVersion: v2
-appVersion: 0.1.0
-description: Сервис для управления микросервисами, включенными в состав модулей
-home: https://git.elewise.com/elma365/babysitter
-name: babysitter
-sources:
-- dreg.elewise.com:5005/elma365/babysitter
-type: application
-version: 0.1.0
