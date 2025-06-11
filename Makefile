@@ -92,6 +92,7 @@ PATH_TO_SSL_KEY := /home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ss
 PATH_TO_SSL_CRT := home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/kind.elewise.local.crt
 PATH_TO_PEM := home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/rootCA.pemrootCA.pem
 release:
+	mkdir apps
 	APP_NAME=elma365-$$VERSION; \
 	echo "🧨 Удаляем старое приложение $$APP_NAME из ArgoCD..."; \
 	argocd app delete $$APP_NAME \
