@@ -9,6 +9,7 @@ echo -e "\033[1;34m=== Начало удаления Argo CD ===\033[0m"
 
 # 1. Удаление Argo CD из Kubernetes
 echo -e "\033[1;33m[1/6] Удаление Argo CD из кластера...\033[0m"
+
 if kubectl get namespace argocd &> /dev/null; then
     # Удаление через манифест (если устанавливался так)
     kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml 2> /dev/null || true
@@ -70,3 +71,4 @@ else
     echo -e "\033[1;31m[!] Обнаружены остаточные компоненты Argo CD\033[0m"
     exit 1
 fi
+

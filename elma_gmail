@@ -114,3 +114,9 @@ chmod +x /etc/cron.weekly/renew-certbot
 echo "Готово! Настройка завершена."
 echo "MinIO доступен по адресу: https://minio.${DOMAIN}"
 echo "Сертификат будет автоматически обновляться."
+
+
+
+kubectl get namespace "elma365" -o json \
+  | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
+  | kubectl replace --raw /api/v1/namespaces/elma365/finalize -f -

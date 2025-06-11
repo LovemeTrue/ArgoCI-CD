@@ -22,16 +22,16 @@ clean-argocd:
 	@echo "🔁 Скейлим deployments в namespace=elma365 до 0 (если есть)..."
 	@kubectl get deploy -n elma365 -o name 2>/dev/null | xargs -r -n1 kubectl scale -n elma365 --replicas=0 || true
 
-	@echo "🧹 Чистим ресурсы с hook-finalizer перед удалением namespace elma365..."
-	@kubectl get all -n elma365 -o json 2>/dev/null \
-	| jq '.items[] | select(.metadata.finalizers != null) | select([.metadata.finalizers[] | contains("argocd.argoproj.io/hook-finalizer")] | any)' \
-	| jq -r '.kind + "/" + .metadata.name' \
-	| xargs -r -n1 -I{} kubectl patch -n elma365 {} -p '{"metadata":{"finalizers":[]}}' --type=merge || true
+	# @echo "🧹 Чистим ресурсы с hook-finalizer перед удалением namespace elma365..."
+	# @kubectl get all -n elma365 -o json 2>/dev/null \
+	# | jq '.items[] | select(.metadata.finalizers != null) | select([.metadata.finalizers[] | contains("argocd.argoproj.io/hook-finalizer")] | any)' \
+	# | jq -r '.kind + "/" + .metadata.name' \
+	# | xargs -r -n1 -I{} kubectl patch -n elma365 {} -p '{"metadata":{"finalizers":[]}}' --type=merge || true
 
-	@kubectl get all -n elma365-dbs -o json 2>/dev/null \
-	| jq '.items[] | select(.metadata.finalizers != null) | select([.metadata.finalizers[] | contains("argocd.argoproj.io/hook-finalizer")] | any)' \
-	| jq -r '.kind + "/" + .metadata.name' \
-	| xargs -r -n1 -I{} kubectl patch -n elma365-dbs {} -p '{"metadata":{"finalizers":[]}}' --type=merge || true
+	# @kubectl get all -n elma365-dbs -o json 2>/dev/null \
+	# | jq '.items[] | select(.metadata.finalizers != null) | select([.metadata.finalizers[] | contains("argocd.argoproj.io/hook-finalizer")] | any)' \
+	# | jq -r '.kind + "/" + .metadata.name' \
+	# | xargs -r -n1 -I{} kubectl patch -n elma365-dbs {} -p '{"metadata":{"finalizers":[]}}' --type=merge || true
 
 	
 	@echo "🗑 Удаляем namespace elma365 (если существует)..."
@@ -40,11 +40,6 @@ clean-argocd:
 		| sed 's/"finalizers": \[[^]]\+\]/"finalizers": []/' \
 		| kubectl replace --raw /api/v1/namespaces/elma365/finalize -f - || true
 	
-	# @echo "🗑 Удаляем оставшиеся ресурсы из elma365 (если есть)..."
-	# @kubectl delete all --all -n elma365 --ignore-not-found || true
-	# @kubectl delete configmap --all -n elma365 --ignore-not-found || true
-	# @kubectl delete secret --all -n elma365 --ignore-not-found || true
-	@kubectl delete ns elma365 --ignore-not-found=true || true
 	
 
 	@echo "🗑 Удаляем namespace elma365-dbs (если существует)..."
@@ -67,23 +62,22 @@ clean-argocd:
 	@echo "📜 Создаём configMap с rootCA в elma365..."
 	@kubectl create configmap elma365-onpremise-ca --from-file=elma365-onpremise-ca.pem=./ssl/rootCA.pem -n elma365
 
-	@argocd login 192.168.29.24:31843 \
-		--username admin \
-		--grpc-web \
-		--password lazypeon \
-		--insecure
+
 	@echo "🗑 Удаляем манифесты elma365 приложений..."
 	@rm -f $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs.yaml || true
 
+	# kubectl get all,secret,appproject,applications.argoproj.io -n elma365 -o json | \
+  	# 	jq -r '.items[] | select(.metadata.finalizers != null) | "\(.kind)/\(.metadata.name)"'
+	# @echo "🧨 Удаляем ArgoCD приложения..."
+	# @argocd login 192.168.29.24:32552 --username admin --password bGcGZiFiR7hUEmvX --server 192.168.29.24:32552 --grpc-web
+	# @kubectl patch applications.argoproj.io/elma365-$(VERSION) -n argocd \
+  	# 	--type=merge -p '{"metadata":{"finalizers":[]}}'
 
-	@echo "🧨 Удаляем ArgoCD приложения..."
-	@argocd login 192.168.29.24:32552 --username admin --password bGcGZiFiR7hUEmvX --server 192.168.29.24:32552 --grpc-web
+	# @argocd app delete elma365-$(VERSION) --server 192.168.29.24:31843 --grpc-web --cascade=false --yes || true
+	# @argocd app delete elma365-dbs --server 192.168.29.24:31843  --grpc-web --cascade=false --yes || true
+	# @argocd app delete root-app --server 192.168.29.24:31843  --grpc-web --cascade=false --yes || true
 
-	@argocd app delete elma365-$(VERSION) --server 192.168.29.24:31843 --grpc-web --cascade=false --yes || true
-	@argocd app delete elma365-dbs --server 192.168.29.24:31843  --grpc-web --cascade=false --yes || true
-	@argocd app delete root-app --server 192.168.29.24:31843  --grpc-web --cascade=false --yes || true
-	
-	@argocd login 192.168.29.24:32552 --username admin --password bGcGZiFiR7hUEmvX --server 192.168.29.24:32552 --grpc-web
+	# @argocd login 192.168.29.24:32552 --username admin --password bGcGZiFiR7hUEmvX --server 192.168.29.24:32552 --grpc-web
 
 	@kubectl apply -f root-app.yaml
 
@@ -228,7 +222,16 @@ cleanup-old-apps:
 
 
 .PHONY: release-full
-release-full: clean-argocd release gen-apps cleanup-git cleanup-old-apps
+release-full:  release gen-apps cleanup-git cleanup-old-apps
+	@git add $(APPS_DIR)
+	@git commit -m "♻️ Очистка старых версий, релиз $(VERSION)" || echo "🟡 Нет изменений"
+	
+	@git push
+	@echo "✅ Полный релиз $(VERSION) завершён: чарты, values, приложения"
+
+
+.PHONY: release-full-clean
+release-full-clean: clean-argocd release gen-apps cleanup-git cleanup-old-apps
 	@git add $(APPS_DIR)
 	@git commit -m "♻️ Очистка старых версий, релиз $(VERSION)" || echo "🟡 Нет изменений"
 	
