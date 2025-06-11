@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: E-mail storage & management
+home: https://git.elewise.com/elma365/postman
+name: postman
+sources:
+- dreg.elewise.com:5005/elma365/postman
+type: application
+version: 0.1.0

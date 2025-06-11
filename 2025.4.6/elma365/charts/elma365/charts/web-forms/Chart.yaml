@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: Сервис веб-форм
+home: https://git.elewise.com/elma365/web-forms
+name: web-forms
+sources:
+- dreg.elewise.com:5005/elma365/web-forms
+type: application
+version: 0.1.0

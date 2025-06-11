@@ -1,0 +1,38 @@
+{{- if eq .Values.global.edition "enterprise" }}
+{{- if eq (toString .Values.global.monitoring.provisioner) "microk8s" }}
+{{- if eq (toString .Values.global.monitoring.dashboard.enabled) "true" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-custom-dashboards
+  namespace: monitoring
+  labels:
+    test: {{.Values.global.solution}}
+data:
+  dashboards.yaml: |-
+    {
+        "apiVersion": 1,
+        "providers": [
+            {
+                "folder": "Default",
+                "name": "0",
+                "options": {
+                    "path": "/grafana-dashboard-definitions/0"
+                },
+                "orgId": 1,
+                "type": "file"
+            },
+            {
+                "folder": "elma365",
+                "name": "elma365",
+                "options": {
+                    "path": "/grafana-dashboard-definitions/elma365"
+                },
+                "orgId": 1,
+                "type": "file"
+            }
+        ]
+    }
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Chart.Name }}-setup-{{ .Values.images.setup }}
+  labels:
+    {{- include "mailer.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install, pre-upgrade
+    "helm.sh/hook-weight": "1"
+spec:
+  backoffLimit: 5
+{{- if .Values.global.setupJobTtlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.global.setupJobTtlSecondsAfterFinished }}
+{{- end }}
+  template:
+    metadata:
+      labels:
+        sidecar.istio.io/inject: "false"
+      annotations:
+        linkerd.io/inject: disabled
+    spec:
+      {{- if .Values.global.helmLibrary }}
+      securityContext:
+        {{- include "helm-library.job.podSecurityContext" . | nindent 8 }}
+      {{- include "helm-library.deployment.scheduling" . | indent 6 }}
+      {{- end }}
+      imagePullSecrets:
+      {{- if .Values.image.pullSecret }}
+      {{- range .Values.image.pullSecret }}
+      - name: {{ . }}
+      {{- end }}
+      {{- else }}
+      {{- range .Values.global.image.pullSecret }}
+      - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      restartPolicy: OnFailure
+      containers:
+        - name: setup
+          image: "{{ .Values.image.repository | default .Values.global.image.repository }}/elma365/mailer/setup:{{ .Values.images.setup }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: elma365-env-config
+                optional: true
+            - secretRef:
+                name: elma365-db-connections
+                optional: true
+        {{- if .Values.global.helmLibrary }}
+          securityContext:
+            {{- include "helm-library.job.securityContext" . | nindent 12 }}
+          {{- include "helm-library.job.resources" . | indent 10 }}
+        {{- end }}

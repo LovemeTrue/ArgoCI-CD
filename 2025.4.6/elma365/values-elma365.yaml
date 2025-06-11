@@ -1,0 +1,820 @@
+elma365:
+  global:
+    # global:
+    # rbac:
+    #   create: true
+    # secrets:
+    #   create: false
+    # expMainUseOrgunitService: 'true'
+## домен (FQDN) или ip адрес, по которому будет доступна система
+    host: 'kind.elewise.local'
+## выбор редакции, доступные варианты: standard, enterprise
+    edition: enterprise
+    ingress:
+## включение host в ingress (значение берется из host)
+## для установленного s3 minio через чарты elma365-dbs, укажите в блоке minio
+## значение в параметре hosts в файле values-dbs.yaml
+      hostEnabled: true
+      onpremiseTls:
+## включение https
+        enabled: true
+      #  enabled: true
+## имя секрета с сертификатами для работы https
+        secret: "elma365-onpremise-tls"
+## включение сертификата корневого CA для работы https с самоподписанным сертификатом
+        enabledCA: true
+## имя конфигмапы с сертификатом корневого CA для работы https с самоподписанным сертификатом
+        configCA: "elma365-onpremise-ca"
+      annotations:
+        application.elma365.com: elma365-onpremise
+## указать ingressClassName
+      ingressClassName: "nginx"
+## включение переносимых сервисов
+    managedServices:
+      enabled: true
+## namespace для переносимых сервисов
+      namespace: elma365-applets
+## storageclass для переносимых сервисов
+      defaultStorageClass: "longhorn"
+## проверка подключения к БД
+    checkdbs: true
+    checkversion: false
+## переопределить версию Kubernetes
+    kubeVersion: ""
+## включение поддержки HAProxy Ingress для работы на платформе OpenShift
+    openshift: false
+## включить дашборды для grafana
+    monitoring:
+      enabled: true
+      metrics:
+        enabled: true
+        all: true
+      provisioner: "deckhouse"
+      dashboard:
+        enabled: true
+      alerts:
+        enabled: true
+      lowcode:
+        metricExportEnabled: false # включить экспорт метрик отчета о производительности в Prometheus (дополнение Monitoring)
+## автомасштабирование сервисов
+    autoscaling:
+      enabled: false
+## выбор метода автомасштабирования, доступные варианты: "hpa", "keda"
+      type: "hpa"
+## минимальное и максимальное количество реплик
+      minReplicas: 2
+      maxReplicas: 5
+## включение ресурсов
+    resourceLimits: false
+## количество попыток выполнения миграций
+#    backoffLimit: 5
+## указание ресурсов для сервисов и задач
+    resourcesJobs:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+## политики контекста безопасности
+#    podSecurityContext:
+#      runAsUser: 1001
+## адрес и секрет для приватного registry
+#    image:
+#      repository: registry.example.com
+## секрет с правами доступа к приватному registry, должен быть создан вручную, зашифрованный в Base64
+#      pullSecret:
+#        - myRegistryKeySecretName
+##
+## дополнительные параметры
+    postgres:
+      maxIdleConns: 10
+      maxOpenConns: 150
+      maxConnLife: 1m
+      poolMaxIdleConns: 10
+      poolMaxOpenConns: 150
+      poolConnMaxLifetime: 5m
+    maxGrpcMessageSize: "8388608"
+    maxGrpcBackoffDelay: 2s
+    activeDeadlineSeconds: 3000
+    curlCreateCompanyMaxTime: 1800
+    curlMigrationsMaxTime: 3000
+##
+## включить режим отладки платформы
+  debug: true
+##
+  bootstrapCompany:
+## эл. почта администратора
+    email: "legkodogatca@gmail.com"
+## пароль администратора
+    password: "test"
+## язык установленной системы, возможные варианты: "ru-RU", "en-US", "sk-SK"
+    locale: "ru-RU"
+##
+  language:
+## язык установленной системы, возможные варианты: "ru-RU", "en-US", "sk-SK"
+    default: "ru-RU"
+##
+  db:
+## отключение создания секрета elma365-db-connections из файла values для возможности использования хранилища vault
+## (ключи для секрета PSQL_URL, RO_POSTGRES_URL, MONGO_URL, VAHTER_MONGO_URL, REDIS_URL, AMQP_URL, S3_BACKEND_ADDRESS,
+## S3_REGION, S3_KEY, S3_SECRET, S3_BUCKET, S3_SSL_ENABLED, S3_UPLOAD_METHOD, S3_DUMP_URL, S3_VIRTUAL_HOSTED_STYLE_ENABLED)
+    enabled: true
+## строки подключения (сonnection strings) для подключения к БД
+##
+## строки ниже заполнены для elma365-dbs, установленного в пространство имен default в ClusterMode
+## замените при необходимости
+##
+## расшифровка:
+## '<connection>://<username>:<password>@<servicename>.<namespace>.svc.<cluster.local>:<port>/<database>?<options>'
+## <connection>    - тип строки подключения: postgresql, mongodb, redis, amqp
+## <servicename>   - название service в кластере Kubernetes
+## <namespace>     - пространство имен, в которое устрановлена база данных
+## <cluster.local> - домен кластера, по умолчанию cluster.local
+##
+## строка подключения к БД Postgres, формат: postgresql://user:password@hostname:5432/databaseName
+    psqlUrl: 'postgresql://postgres:pgpassword@postgres.elma365-dbs.svc.cluster.local:5432/elma365?sslmode=disable'
+## строка подключения к БД Postgres только для чтения, формат: postgresql://user:password@hostname:5432/databaseName
+    roPsqlUrl: ''
+## ClusterMode - следующая строка используется для PostgreSQL в Cluster Mode
+#    roPsqlUrl: 'postgresql://postgres:pgpassword@postgres-read.default.svc.cluster.local:5432/elma365?sslmode=disable'
+## cтрока подключения к БД MongoDB для приложения, формат: mongodb://user:password@hostname:27017/databaseName
+    mongoUrl: 'mongodb://elma365:mongopassword@mongo.elma365-dbs.svc.cluster.local:27017/elma365?ssl=false&replicaSet=rs0&readPreference=nearest'
+## перед восстановлением дампа скриптом elma365db.sh в mongoUrl необходимо указать пользователя с ролью root
+## cтрока подключения к БД MongoDB для сервера авторизации, формат: mongodb://user:password@hostname:27017/databaseName
+    vahterMongoUrl: 'mongodb://elma365:mongopassword@mongo.elma365-dbs.svc.cluster.local:27017/elma365?ssl=false&replicaSet=rs0&readPreference=nearest'
+## mongoUrl и vahterMongoUrl могут быть одинаковыми, коллекции внутри бд не пересекаются
+## cтрока подключения к Redis, формат: redis://user:password@redis.local:6379/databaseName
+    redisUrl: 'redis://redis.elma365-dbs.svc.cluster.local:6379/0'
+## cтрока подключения к Rabbit, формат amqp://user:password@hostname:5672/vhost
+    amqpUrl: 'amqp://elma365:rmqpassword@rabbitmq.elma365-dbs.svc.cluster.local:5672/elma365'
+# amqpUrl: 'amqp://elma365user:SecretPassword@91.217.196.139:5672/elma365vhost'
+##
+## настройки подключения к S3 хранилищу файлов
+    s3:
+      method: PUT
+      accesskeyid: elma365user
+      secretaccesskey: SecretPassword
+      bucket: s3elma365-test
+      backend:
+        address: master.sale.elewise.com:9000
+        region: ru-central-1
+      ssl:
+        enabled: "true"
+      virtualHostedStyle:
+        enabled: "false"
+## адрес S3 для резервного копирования скриптом elma365db.sh в формате, если S3 в Kubernetes-кластере
+## http(s)://minio.<namespace>.svc.<cluster.local>, для внешнего S3 формат http(s)://example.ru:9000
+      dumpurl: "https:/master.sale.elewise.com:9000"
+## включение возможности использовать внешние секреты для подключение к БД
+#    secrets: true
+## имя секрета со строкой подключения к БД Postgres, зашифрованной в Base64 (ключ PSQL_URL)
+#    psqlSecret: elma365-custom-db-connections
+## имя секрета со строкой подключения к БД Postgres только для чтения, зашифрованной в Base64 (ключ RO_POSTGRES_URL)
+#    roPsqlSecret: elma365-custom-db-connections
+## имя секрета со строкой подключения к БД MongoDB для приложения, зашифрованной в Base64 (ключ MONGO_URL)
+#    mongoSecret: elma365-custom-db-connections
+## имя секрета со строкой подключения к Redis, зашифрованной в Base64 (ключ REDIS_URL)
+#    redisSecret: elma365-custom-db-connections
+## имя секрета со строкой подключения к Rabbit, зашифрованной в Base64 (ключ AMQP_URL)
+#    amqpSecret: elma365-custom-db-connections
+## имя секрета с подключением к S3 хранилищу файлов, зашифрованной в Base64
+## (ключи S3_BACKEND_ADDRESS, S3_REGION, S3_KEY, S3_SECRET, S3_BUCKET, S3_SSL_ENABLED, S3_UPLOAD_METHOD, S3_DUMP_URL, S3_VIRTUAL_HOSTED_STYLE_ENABLED)
+#    s3Secret: elma365-custom-db-connections
+##
+## Настройка микросервиса mailer
+  mailer:
+## настройки для подключения к SMTP серверу отправки почты
+    smtp:
+## адрес SMTP-сервера, например "smtp.example.ru"
+      host: "smtp.elma-bpm.com"
+## порт, который слушает SMTPсервер, например 25, или 485, или 587
+      port: "465"
+## адрес отправителя электронной почты, например "CompanyName <noreply@example.ru>"
+      from: "panov@elma-bpm.com"
+## пользователь для авторизации на SMTP сервере, например "noreply@example.ru" или "noreply"
+      user: "panov@elma-bpm.com"
+## пароль для авторизации на SMTP сервере
+      password: "panmKkFV9C"
+## используется ли шифрование (true - если да, false - если нет)
+      needTLS: true
+#    replicaCount: 1
+#    resourcesJobs: {}
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса settings
+settings:
+## включение флагов
+  appconfig:
+    onPremiseEnabledFeatureFlags:
+      - extensionEventHandling
+      - processEventHandling
+      - delegatedEventHandling
+      - appItemViewEventEnabled
+      - fileDownloadEventEnabled
+      - filePreviewEventEnabled
+      - enableModuleServices
+      - allowAttachWidgetFiles
+      - useLegacyNodeVM
+      - allowServerScriptsImport
+      - allowImportPortalUsersForAD
+      - allowImportPortalUsersForLDAP
+      - allowAuthPortalUsersWithSAML
+      - allowEntityLocalization
+      - enableDuplicateFTS
+      - enableSubscriptionOnEventsFromScript
+      - allowExternalApplicationsOIDC
+      - allowScriptImportsDependencies
+      - allowCustomActivityActionCall
+      - enableLowcodeCICD
+      - enableMarketingJourneys
+      - enableBatchOperationsApplicationItems
+      - allowMultipleWorkCalendars
+      - allowPlanFutureWorkCalendar
+      - enableEventBusDynamicFiltration
+      - enableLowcodeTracing
+      - allowElmaBotXTokenAuth
+      - enableSQLPerformanceReport
+## флаг для включения ELMA Bot
+      - allowLinesBots
+      - allowElmaBotLicensing
+#  replicaCount: 1
+#  resources: {}
+#  autoscaling: {}
+#  livenessProbe: {}
+#  readinessProbe: {}
+#  startupProbe: {}
+## Настройка микросервиса hydra-adaptor
+  hydra-adaptor:
+# настройка для ELMA Bot
+    appconfig:
+      client_id: elma.assistant.clients.external.elma365.server
+      client_secret: wvmtLu1KAvf8XjtULBFJ3DP0eB
+      hydraAdminURL: http://hydra-admin:4445
+      loginEndpoint: "https://{{ .Values.global.host }}/ext-api/oidc-adaptor/login"
+#    resourcesJobs: {}
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса elmabot-proxy
+  elmabot-proxy:
+    appconfig:
+      apiUrl: "https://bot-lkr.elewise.local/elma365"
+      grantType: elma.assistant.auth.grants.impersonation.elma365
+      identityServerUrl: "https://bot-lkr.elewise.local/auth"
+      oidcUri: "{{ .Values.global.host }}"
+      scope: elma.assistant.scopes.api.gateways.elma365 elma.assistant.scopes.auth.impersonation
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {} 
+##
+## Настройка микросервиса aspose-actions
+#  aspose-actions:
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+# image: {}
+# images: {}
+  # image:
+
+  #   pullSecret: []
+ # Очистка микросервисов с задвоением image:
+# deploy:
+#   image: {}
+#   images:
+#     service: ""
+#     dumper: ""
+
+# messenger-vkteamsbot:
+#   image: {}
+#   images:
+#     service: ""
+
+# babysitter:
+#   image: {}
+#   images:
+#     service: ""
+
+# billing:
+#   image: {}
+#   images:
+#     service: ""
+#     setup: ""
+
+# # На всякий случай: curl и maintenance
+# maintenance:
+#   image: {}
+# curl:
+#   image: {}
+## Настройка микросервиса auth
+#  auth:
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса babysitter
+#  babysitter:
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса balancer
+#  balancer:
+#    replicaCount: 1
+#    resourcesJobs: {}
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса billing
+#  billing:
+#    resourcesJobs: {}
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса calculator
+#  calculator:
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса chat
+#  chat:
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса collector
+#  collector:
+#    replicaCount: 1
+#    appconfig:
+#      poolCheckTimeout: 10s
+#      poolConnMaxLifetime: 5m
+#      poolMaxOpenConns: 150
+#      poolMaxIdleConns: 50
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса contractor
+#  contractor:
+#    replicaCount: 1
+#    resourcesJobs: {}
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса convertik
+#  convertik:
+#    replicaCount: 1
+#    resourcesJobs: {}
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса crm
+#  crm:
+#    appconfig:
+#      httpTimeout: 1m
+#      syncSubscribersMinSize: 20
+#      mailingListExportTimeout: 10m
+#      deleteExpiredActivitiesThreshold: 5m
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса deploy
+#  deploy:
+#    replicaCount: 1
+#    appconfig:
+#      httpClientTimeout: 1m
+#      dumpTimeout: 20m
+#      migrateTimeout: 1h
+#      activateTimeout: 30m
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+#    dumper:
+#      livenessProbe: {}
+#      readinessProbe: {}
+#      startupProbe: {}
+##
+## Настройка микросервиса diskjockey
+#  diskjockey:
+#    replicaCount: 1
+#    resourcesJobs: {}
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса docflow
+#  docflow:
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса dup-detector
+#  dup-detector:
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса event-bus
+#  event-bus:
+#    replicaCount: 1
+#    resourcesJobs: {}
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса exchange
+#  exchange:
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса feeder
+#  feeder:
+#    replicaCount: 1
+#    resources:{}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса fileprotection
+#  fileprotection:
+#    replicaCount: 1
+#    resources:{}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса front
+#  front:
+#    replicaCount: 1
+#    appconfig:
+#      storeUrl: "https://store.elma365.ru"
+#      tinkoffTerminalKey: ""
+#      supportUrl: ""
+#      solution: "onPremise"
+#      showUnhandledErrors: false
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса integrations
+#  integrations:
+#    appconfig:
+#      availableIntegrations:
+#        - all
+#      SamlInsecureFetchMetadata: false
+#      ldapTimeout: '55s'
+#      ldapJobTTL: '2m'
+#      ldapJobDelayBetweenAttempts: '10s'
+#    replicaCount: 1
+#    env:
+#      availableIntegrations: [all]
+#    resourcesJobs: {}
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса lowcodecd
+#  lowcodecd:
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса main
+#  main:
+#    replicaCount: 1
+#    appconfig:
+#      app:
+#        maxWorkersCount: 5
+#        itemsExchangeTimeout: 3
+#        exchangeTimeout: 60m
+#        itemsExchangeImportChunkSize: 100
+#      ldap:
+#        attemptsMaxCount: 24
+#        delayBetweenAttempts: 5s
+#        importTimeout: 30m
+#    skipSslVerify: true
+#    resourcesJobs: {}
+#    resources: {}
+#    autoscaling:{}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса messenger-inbox
+#  messenger-inbox:
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса messenger-instagram
+#  messenger-instagram:
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса messenger-livechat
+#  messenger-livechat:
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса messenger-other
+#  messenger-other:
+#    replicaCount: 1
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса messenger-telegram
+#  messenger-telegram:
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса messenger-telegrambot
+#  messenger-telegrambot:
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса messenger-viberbot
+#  messenger-viberbot:
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса messenger-vkontakte
+#  messenger-vkontakte:
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса messenger-whatsapp
+#  messenger-whatsapp:
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса messengers
+#  messengers:
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса notifier
+#  notifier:
+#    appconfig:
+#      itemUpdatedConcurrencyCount: 100
+#      observableCollectionEventsConcurrencyCount: 100
+#    resourcesJobs: {}
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса otelier
+#  otelier:
+#    replicaCount: 1
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса picasso
+#  picasso:
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса postman
+#  postman:
+#    appconfig:
+#      httpTimeout: 1m
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса processor
+#  processor:
+#    appconfig:
+#      runLimitSubProcesses: 4
+#      runLimitToRestoreProcesses: 4
+#      outdatedProcessesThresholdHours: 60
+#      customActivityScriptMinCheckInterval: "1m"
+#    replicaCount: 1
+#    resourcesJobs: {}
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса projects
+#  projects:
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса reminder
+#  reminder:
+#    replicaCount: 1
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса reporter
+#  reporter:
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса scheduler
+#  scheduler:
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса support-messenger
+#  support-messenger:
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса telemetrist
+#  telemetrist:
+#    replicaCount: 1
+#    resourcesJobs: {}
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса template-mapper
+#  template-mapper:
+#    resourcesJobs: {}
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса templater
+#  templater:
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса todolist
+#  todolist:
+#    appconfig:
+#      clearAfterDays: 30
+#      cleanerRunInterval: 1
+#    resources: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса vahter
+#  vahter:
+#    appconfig:
+#      allowInsecureCookie: true
+#      activateTimeout: 30m
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса web-forms
+#  web-forms:
+#    replicaCount: 1
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса widget
+#  widget:
+#    replicaCount: 1
+#    resourcesJobs: {}
+#    resources: {}
+#    autoscaling: {}
+#    livenessProbe: {}
+#    readinessProbe: {}
+#    startupProbe: {}
+##
+## Настройка микросервиса worker
+#  worker:
+#    appconfig:
+#      httpProxyAddr: ''
+#      concurrency: 4
+#      forkAvailableMemorySize: 0
+#      skipCompilationLimits: "false"
+#    replicaCount: 1
+#    resourcesJobs: {}
+#    resources: {}
+#    gatewayresources: {}
+#    autoscaling: {}
+#    gatewayautoscaling: {}
