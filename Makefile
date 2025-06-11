@@ -34,11 +34,11 @@ clean-argocd:
 	# | xargs -r -n1 -I{} kubectl patch -n elma365-dbs {} -p '{"metadata":{"finalizers":[]}}' --type=merge || true
 
 	
-	@echo "🗑 Удаляем namespace elma365 (если существует)..."
-	@kubectl get ns elma365 -o json 2>/dev/null \
-		| tr -d '\n' \
-		| sed 's/"finalizers": \[[^]]\+\]/"finalizers": []/' \
-		| kubectl replace --raw /api/v1/namespaces/elma365/finalize -f - || true
+	# @echo "🗑 Удаляем namespace elma365 (если существует)..."
+	# @kubectl get ns elma365 -o json 2>/dev/null \
+	# 	| tr -d '\n' \
+	# 	| sed 's/"finalizers": \[[^]]\+\]/"finalizers": []/' \
+	# 	| kubectl replace --raw /api/v1/namespaces/elma365/finalize -f - || true
 	
 	
 
