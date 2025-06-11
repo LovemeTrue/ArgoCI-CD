@@ -66,8 +66,8 @@ clean-argocd:
 	@kubectl create configmap elma365-onpremise-ca --from-file=elma365-onpremise-ca.pem=./ssl/rootCA.pem -n elma365
 
 
-	@echo "🗑 Удаляем манифесты elma365 приложений..."
-	@rm -f $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs.yaml || true
+	# @echo "🗑 Удаляем манифесты elma365 приложений..."
+	# @rm -f $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs.yaml || true
 
 	# kubectl get all,secret,appproject,applications.argoproj.io -n elma365 -o json | \
   	# 	jq -r '.items[] | select(.metadata.finalizers != null) | "\(.kind)/\(.metadata.name)"'
@@ -85,9 +85,8 @@ clean-argocd:
 	@kubectl apply -f root-app.yaml
 
 
-	# @echo "🔄 Обновляем root-app через hard-refresh..."
-	# @argocd app get root-app  --server cd.apps.argoproj.io --grpc-web --hard-refresh
-	# @argocd app sync root-app --server cd.apps.argoproj.io --grpc-web
+	@echo "🔄 Обновляем root-app через hard-refresh..."
+	@argocd app get root-app  --server cd.apps.argoproj.io --grpc-web --hard-refresh
 
 .PHONY: release
 
@@ -95,7 +94,7 @@ PATH_TO_SSL_KEY := /home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ss
 PATH_TO_SSL_CRT := home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/kind.elewise.local.crt
 PATH_TO_PEM := home/panov/Загрузки/ElmaWork/ElmaGitOps/ArgoCI-CD/ssl/rootCA.pemrootCA.pem
 release:
-	mkdir apps
+	mkdir -p apps
 	APP_NAME=elma365-$$VERSION; \
 	echo "🧨 Удаляем старое приложение $$APP_NAME из ArgoCD..."; \
 	argocd app delete $$APP_NAME \
