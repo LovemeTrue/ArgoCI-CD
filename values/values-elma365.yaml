@@ -101,6 +101,12 @@ elma365:
       poolMaxIdleConns: 10
       poolMaxOpenConns: 150
       poolConnMaxLifetime: 5m
+      log_statement : all
+      session_preload_libraries : auto_explain
+      auto_explain.log_analyze : on
+      auto_explain.log_min_duration : 400
+      auto_explain.log_buffers : on
+      auto_explain.log_format : JSON
     maxGrpcMessageSize: "8388608"
     maxGrpcBackoffDelay: 2s
     activeDeadlineSeconds: 3000
