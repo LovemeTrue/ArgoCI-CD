@@ -145,6 +145,7 @@ gen-apps:
 	@mkdir -p $(APPS_DIR)
 	
 	@# Генерация elma365-$(VERSION).yaml
+
 	@echo "📄 Перезаписываю $(APPS_DIR)/elma365-$(VERSION).yaml"
 	@echo "apiVersion: argoproj.io/v1alpha1" > $(APPS_DIR)/elma365-$(VERSION).yaml
 	@echo "kind: Application" >> $(APPS_DIR)/elma365-$(VERSION).yaml
@@ -172,6 +173,7 @@ gen-apps:
 	@echo "      selfHeal: true" >> $(APPS_DIR)/elma365-$(VERSION).yaml
 
 	@# Генерация elma365-dbs.yaml
+
 	@echo "📄 Перезаписываю $(APPS_DIR)/elma365-dbs.yaml"
 	@echo "apiVersion: argoproj.io/v1alpha1" > $(APPS_DIR)/elma365-dbs.yaml
 	@echo "kind: Application" >> $(APPS_DIR)/elma365-dbs.yaml
@@ -197,9 +199,37 @@ gen-apps:
 	@echo "      prune: true" >> $(APPS_DIR)/elma365-dbs.yaml
 	@echo "      selfHeal: true" >> $(APPS_DIR)/elma365-dbs.yaml
 
+	@# Генерация tempo.yaml
+
+	@echo "📄 Перезаписываю $(APPS_DIR)/tempo.yaml"
+	@echo "apiVersion: argoproj.io/v1alpha1" > $(APPS_DIR)/tempo.yaml
+	@echo "kind: Application" >> $(APPS_DIR)/tempo.yaml
+	@echo "metadata:" >> $(APPS_DIR)/tempo.yaml
+	@echo "  name: tempo" >> $(APPS_DIR)/tempo.yaml
+	@echo "  namespace: argocd" >> $(APPS_DIR)/tempo.yaml
+	@echo "  annotations:" >> $(APPS_DIR)/tempo.yaml
+	@echo "    argocd.argoproj.io/sync-wave: \"2\"" >> $(APPS_DIR)/tempo.yaml
+	@echo "    argocd.argoproj.io/depends-on: \"[elma365-$(VERSION)]\"" >> $(APPS_DIR)/tempo.yaml
+	@echo "spec:" >> $(APPS_DIR)/tempo.yaml
+	@echo "  project: default" >> $(APPS_DIR)/tempo.yaml
+	@echo "  source:" >> $(APPS_DIR)/tempo.yaml
+	@echo "    repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git" >> $(APPS_DIR)/tempo.yaml
+	@echo "    targetRevision: main" >> $(APPS_DIR)/tempo.yaml
+	@echo "    path: $(VERSION)/tempo" >> $(APPS_DIR)/tempo.yaml
+	@echo "    helm:" >> $(APPS_DIR)/tempo.yaml
+	@echo "      valueFiles:" >> $(APPS_DIR)/tempo.yaml
+	@echo "        - values-tempo.yaml" >> $(APPS_DIR)/tempo.yaml
+	@echo "  destination:" >> $(APPS_DIR)/tempo.yaml
+	@echo "    server: https://kubernetes.default.svc" >> $(APPS_DIR)/tempo.yaml
+	@echo "    namespace: d8-monitoring" >> $(APPS_DIR)/tempo.yaml
+	@echo "  syncPolicy:" >> $(APPS_DIR)/tempo.yaml
+	@echo "    automated:" >> $(APPS_DIR)/tempo.yaml
+	@echo "      prune: true" >> $(APPS_DIR)/tempo.yaml
+	@echo "      selfHeal: true" >> $(APPS_DIR)/tempo.yaml
+
 	@# Git операции
 	@if [ -n "$$(git status --porcelain $(APPS_DIR))" ]; then \
-		git add $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs.yaml; \
+		git add $(APPS_DIR)/elma365-$(VERSION).yaml $(APPS_DIR)/elma365-dbs.yaml $(APPS_DIR)/tempo.yaml; \
 		git commit -m "🔁 Перегенерация ArgoCD приложений для версии $(VERSION)"; \
 		git push; \
 	else \
@@ -224,6 +254,19 @@ cleanup-old-apps:
 		-exec rm -v {} \;
 
 
+.PHONY: release-tempo
+release-tempo:
+	@echo "📦 Скачиваем Tempo чарт (latest)..."
+	@helm repo add elma365 https://charts.elma365.tech || true
+	@helm repo update
+	@helm pull elma365/tempo --untar
+	@mkdir -p $(VERSION)/tempo
+	@mv tempo/* $(VERSION)/tempo/
+	@rm -rf tempo
+
+	@echo "📥 Копируем values-tempo.yaml..."
+	@cp values/values-tempo.yaml $(VERSION)/tempo/
+
 .PHONY: release-full
 release-full:  release gen-apps cleanup-git cleanup-old-apps
 	@git add $(APPS_DIR)
@@ -234,7 +277,7 @@ release-full:  release gen-apps cleanup-git cleanup-old-apps
 
 
 .PHONY: release-full-clean
-release-full-clean: clean-argocd release gen-apps cleanup-git cleanup-old-apps
+release-full-clean: clean-argocd release release-tempo gen-apps cleanup-git cleanup-old-apps
 	@git add $(APPS_DIR)
 	@git commit -m "♻️ Очистка старых версий, релиз $(VERSION)" || echo "🟡 Нет изменений"
 	
