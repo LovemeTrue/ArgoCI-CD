@@ -1,0 +1,24 @@
+apiVersion: deckhouse.io/v1
+kind: ClusterAuthorizationRule
+metadata:
+  name: admin
+spec:
+  # список учётных записей Kubernetes RBAC
+  subjects:
+  - kind: User
+    name: admin@deckhouse.io
+  # предустановленный шаблон уровня доступа
+  accessLevel: SuperAdmin
+  # разрешить пользователю делать kubectl port-forward
+  portForwarding: true
+---
+# секция, описывающая параметры статического пользователя
+# используемая версия API Deckhouse
+apiVersion: deckhouse.io/v1
+kind: User
+metadata:
+  name: admin
+spec:
+  # e-mail пользователя
+  email: admin@deckhouse.io
+  password: 'JDJ5JDEwJFguUzJGRFN0bjIzaldHeW1WT25Jc3VKdGgxenFaQS9rL1lmYUROc1hmSnZUTXlnb1JYT3pTCgo='

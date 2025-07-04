@@ -1,0 +1,47 @@
+all:
+  hosts:
+    # Node lists in the cluster
+    master:
+      ansible_host: 91.217.196.189
+      ansible_user: vrstel
+      ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+      become: true
+    # System node information
+    system:
+      ansible_host: 91.217.196.183
+      ansible_user: sunofthetruth
+      ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+      become: true
+    # Worker nodes information
+    worker-n1:
+      ansible_host: 192.168.39.58
+      ansible_user: loginov
+      ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+      become: true
+    worker-n2:
+      ansible_host: 91.217.196.152
+      ansible_user: haproxy
+      ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+      become: true
+
+  children:
+    localhost:
+      hosts:
+        localhost:
+          ansible_connection: local
+
+  # All vars included localhost
+  vars:
+    pod_subnet_cidr: "10.111.0.0/16"
+    service_subnet_cidr: "10.222.0.0/16"
+    cluster_domain: "cluster.local"
+    public_domain_template: "%s.d8-multinode.sale.elewise.com"
+    internal_network_cidrs:
+      - "91.217.196.0/24"
+      - "192.168.39.0/24"
+    release_channel: "Stable"
+    ssh_user: "vrstel"
+    master_ip: "91.217.196.189"
+    deckhouse_registry_cfg: "eyJhdXRocyI6IHsgInJlZ2lzdHJ5LmRlY2tob3VzZS5ydSI6IHt9fX0K"
+
+    
