@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git
     targetRevision: main
-    path: $(VERSION)/tempo
+    path: 0/tempo
     helm:
       valueFiles:
         - values-tempo.yaml
