@@ -1,6 +1,6 @@
 global:
 ## Настройки provisioner (k8s, deckhouse)
-  provisioner: "k8s"
+  provisioner: "deckhouse"
 tempo:
   tempo:
     retention: 24h
