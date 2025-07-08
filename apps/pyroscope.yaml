@@ -16,7 +16,7 @@ spec:
         - pyroscope-values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: d8-pyroscope
+    namespace: pyroscope
   syncPolicy:
     automated:
       prune: true
