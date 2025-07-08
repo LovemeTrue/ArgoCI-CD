@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pyroscope
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/depends-on: "[elma365-0]"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git
+    targetRevision: main
+    path: 0/pyroscope
+    helm:
+      valueFiles:
+        - pyroscope-values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: d8-pyroscope
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      createNamespace: true
