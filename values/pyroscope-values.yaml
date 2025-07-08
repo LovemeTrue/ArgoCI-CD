@@ -1,0 +1,10 @@
+pyroscope:
+  storage:
+    type: s3
+    s3:
+      bucket: "pyroscope"
+      endpoint: "master.sale.elewise.com:9000"
+      insecure: false  # Включаем TLS
+      existingSecret: "pyroscope-s3-creds"  # Secret с access_key/secret_key
+      tls:
+        enabled: true

@@ -1,0 +1,12 @@
+dependencies:
+- name: grafana-agent
+  repository: https://grafana.github.io/helm-charts
+  version: 0.25.0
+- name: alloy
+  repository: https://grafana.github.io/helm-charts
+  version: 1.0.1
+- name: minio
+  repository: https://charts.min.io/
+  version: 4.0.12
+digest: sha256:c17d480ece2d7a22cf8af260566c860b80c61e72c44995e636a838497c42c44e
+generated: "2025-05-15T14:43:08.922987-03:00"

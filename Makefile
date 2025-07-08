@@ -236,6 +236,44 @@ gen-apps:
 		echo "🟡 Нет изменений для коммита"; \
 	fi
 
+.PHONY: gen-pyroscope-app
+gen-pyroscope-app:
+	@echo "📄 Перезаписываю $(APPS_DIR)/pyroscope.yaml"
+	@echo "apiVersion: argoproj.io/v1alpha1" > $(APPS_DIR)/pyroscope.yaml
+	@echo "kind: Application" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "metadata:" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "  name: pyroscope" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "  namespace: argocd" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "  annotations:" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "    argocd.argoproj.io/sync-wave: \"3\"" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "    argocd.argoproj.io/depends-on: \"[elma365-$(VERSION)]\"" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "spec:" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "  project: default" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "  source:" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "    repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "    targetRevision: main" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "    path: $(VERSION)/pyroscope" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "    helm:" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "      valueFiles:" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "        - pyroscope-values.yaml" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "  destination:" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "    server: https://kubernetes.default.svc" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "    namespace: d8-pyroscope" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "  syncPolicy:" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "    automated:" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "      prune: true" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "      selfHeal: true" >> $(APPS_DIR)/pyroscope.yaml
+	@echo "      createNamespace: true" >> $(APPS_DIR)/pyroscope.yaml
+
+	@# Git операции
+	@if [ -n "$$(git status --porcelain $(APPS_DIR))" ]; then \
+		git add $(APPS_DIR)/pyroscope.yaml; \
+		git commit -m "🔁 Перегенерация ArgoCD приложения Pyroscope"; \
+		git push; \
+	else \
+		echo "🟡 Нет изменений для коммита"; \
+	fi
+
 
 .PHONY: cleanup-git-apps
 cleanup-git:
@@ -266,6 +304,22 @@ release-tempo:
 
 	@echo "📥 Копируем values-tempo.yaml..."
 	@cp values/values-tempo.yaml $(VERSION)/tempo/
+
+.PHONY: release-pyroscope
+release-pyroscope:
+	@echo "📦 Добавляем Helm репозиторий grafana..."
+	@helm repo add grafana https://grafana.github.io/helm-charts || true
+	@helm repo update
+
+	@echo "📥 Скачиваем чарт Pyroscope из grafana..."
+	@helm pull grafana/pyroscope --untar
+	@mkdir -p $(VERSION)/pyroscope
+	@mv pyroscope/* $(VERSION)/pyroscope/
+	@rm -rf pyroscope
+
+	@echo "📥 Копируем values/pyroscope-values.yaml..."
+	@cp values/pyroscope-values.yaml $(VERSION)/pyroscope/
+
 
 .PHONY: release-full
 release-full:  release gen-apps cleanup-git cleanup-old-apps
