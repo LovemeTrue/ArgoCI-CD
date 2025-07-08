@@ -1,0 +1,99 @@
+{{- if .Values.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "jaeger.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "jaeger.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "jaeger.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "jaeger.selectorLabels" . | nindent 8 }}
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ include "jaeger.jaegerVersion" . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: udp-com-thr
+              containerPort: 6831
+              protocol: UDP
+            - name: udp-bin-thr
+              containerPort: 6832
+              protocol: UDP
+            - name: udp-bin-thr-o
+              containerPort: 5775
+              protocol: UDP
+            - name: http-configs
+              containerPort: 5778
+              protocol: TCP
+            {{- if .Values.enableHttpOpenTelemetryCollector }}
+            - name: http-otlp-grpc
+              containerPort: 4317
+              protocol: TCP
+            - name: http-otlp
+              containerPort: 4318
+              protocol: TCP
+            {{- end }}  
+            - name: http-ui
+              containerPort: 16686
+              protocol: TCP
+            - name: grpc-proto
+              containerPort: 14250
+              protocol: TCP
+            - name: http-bin-thr
+              containerPort: 14268
+              protocol: TCP
+            {{- if .Values.enableHttpZipkinCollector }}
+            - name: http-zipkin
+              containerPort: 9411
+              protocol: TCP
+            {{- end }}  
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+          {{- range $key, $value := .Values.environmentVariables }}
+          - name: {{ $key }}
+            value: {{ $value | quote }}
+          {{- end }}
+          {{- if .Values.enableHttpOpenTelemetryCollector }}
+          - name: COLLECTOR_OTLP_ENABLED
+            value: "true"
+          {{- end }}  
+          {{- if .Values.enableHttpZipkinCollector }}
+          - name: COLLECTOR_ZIPKIN_HOST_PORT
+            value: ":9411"
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+    {{- end }}
+{{- end }}

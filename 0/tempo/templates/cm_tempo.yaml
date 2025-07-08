@@ -1,0 +1,59 @@
+# grafana-datasource-tempo-configmap.yaml
+{{- if eq (toString .Values.global.provisioner) "deckhouse" }}
+apiVersion: deckhouse.io/v1
+kind: GrafanaAdditionalDatasource
+metadata:
+  name: tempo
+spec:
+  access: Proxy
+  basicAuth: false
+  jsonData:
+    tracesToLogs:
+      datasourceUid: 'loki'
+      lokiSearch: true
+    Graph: 'loki'
+    nodeGraph:
+      enabled: true
+    serviceMap:
+      datasourceUid: "main"
+  type: tempo
+  url: http://tempo.monitoring:3100
+---
+{{- else }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasource-tempo
+  labels:
+    grafana_datasource: "1"
+data:
+  tempo-datasource.yaml: |-
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        url: http://loki-gateway
+        jsonData:
+          derivedFields:
+            - datasourceUid: Tempo
+              matcherRegex: "(?:trace.traceid|traceid)(?:\":|=)\"(\\w+)\""
+              url: '$${__value.raw}'
+              name: traceid
+        access: proxy
+        editable: true
+      - name: Tempo
+        type: tempo
+        url: http://tempo:3100
+        jsonData:
+          tracesToLogs:
+            datasourceUid: 'Loki'
+            lokiSearch: true
+          Graph: 'Loki'
+          nodeGraph:
+            enabled: true
+          serviceMap:
+            datasourceUid: "Prometheus"         
+        access: proxy
+        editable: true
+---
+{{- end }}

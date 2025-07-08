@@ -1,0 +1,48 @@
+global:
+## Настройки provisioner (k8s, deckhouse)
+  provisioner: "k8s"
+tempo:
+  tempo:
+    retention: 24h
+    storage:
+      trace:
+        backend: s3
+        # store traces in s3
+        s3:
+          bucket: tempo                                  # store traces in this bucket
+          endpoint: minio.local:9000                     # api endpoint
+          access_key: access_key                         # optional. access key when using static credentials.
+          secret_key: secret_key                         # optional. secret key when using static credentials.
+          insecure: true                                 # optional. enable if endpoint is http
+          # tls_insecure_skip_verify: true                 # turns off TLS handshake verification
+    fullnameOverride: "tempo"
+    ## параметры подключения к приватному registry
+    ## адрес и путь для приватного registry
+    repository: hub.elma365.tech/docker/addons/grafana/tempo
+    tag: "2.5.0"
+    # pullPolicy: IfNotPresent
+    # pullSecrets: 
+    #   - myRegistryKeySecretName
+jaeger:
+  environmentVariables:
+    MEMORY_MAX_TRACES: 100000
+    SPAN_STORAGE_TYPE: badger
+    BADGER_EPHEMERAL: false
+    BADGER_DIRECTORY_VALUE: /badger/data
+    BADGER_DIRECTORY_KEY: /badger/key
+    REPORTER_TYPE: grpc
+    REPORTER_GRPC_HOST_PORT: tempo:14250
+    REPORTER_GRPC_RETRY_MAX: 100
+  tolerations: 
+    - key: "dedicated"
+      operator: "Equal"
+      value: "staging"
+      effect: "NoSchedule"   
+  ## параметры подключения к приватному registry
+  image:
+  # адрес и путь для приватного registry
+    repository: hub.elma365.tech/docker/addons/jaegertracing/jaeger-agent
+    versionOverride: "1.57.0"
+  #   pullPolicy: IfNotPresent
+  # imagePullSecrets: 
+  #   - myRegistryKeySecretName
