@@ -4,6 +4,8 @@
 
 
 pyroscope:
+  server:
+    enabled: true
   replicaCount: 1
 
   # -- Kubernetes cluster domain suffix for DNS discovery
