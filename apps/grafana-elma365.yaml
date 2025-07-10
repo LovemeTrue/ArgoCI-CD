@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git
     targetRevision: main
-    path: 0/grafana
+    path: 0/monitoring
     helm:
       valueFiles:
         - grafana-values.yaml
