@@ -274,6 +274,46 @@ gen-pyroscope-app:
 		echo "🟡 Нет изменений для коммита"; \
 	fi
 
+.PHONY: gen-grafana-app
+gen-grafana-app:
+	@echo "📄 Перезаписываю $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "apiVersion: argoproj.io/v1alpha1" > $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "kind: Application" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "metadata:" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "  name: values-monitoring.yaml" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "  namespace: argocd" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "  annotations:" >> $(APPS_DIR)/values-monitoring.yaml.yaml		
+	@echo "    argocd.argoproj.io/sync-wave: \"4\"" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "    argocd.argoproj.io/depends-on: \"[elma365-$(VERSION)]\"" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "spec:" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "  project: default" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "  source:" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "    repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git" >> $(APPS_DIR)/values-monitoring.yaml
+	@echo "    targetRevision: main" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "    path: values/values-monitoring.yaml-values.yaml" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "    helm:" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "      valueFiles:" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "        - values-monitoring.yaml-values.yaml" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "  destination:" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "    server: https://kubernetes.default.svc" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "    namespace: monitoring" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "  syncPolicy:" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "    automated:" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "      prune: true" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+	@echo "      selfHeal: true" >> $(APPS_DIR)/values-monitoring.yaml.yaml
+
+.PHONY: release-grafana
+release-grafana:
+	@echo "📦 Скачиваем чарт grafana..."
+	@helm repo add elma365 https://charts.elma365.tech
+	@helm repo update
+	@helm pull elma365/monitoring --untar
+	@mkdir -p $(VERSION)/monitoring
+	@mv monitoring/* $(VERSION)/monitoring/
+	@rm -rf monitoring
+
+	@echo "📥 Копируем values/values-monitoring.yaml..."
+	@cp values/values-monitoring.yaml $(VERSION)/monitoring/
 
 .PHONY: cleanup-git-apps
 cleanup-git:

@@ -1,0 +1,4053 @@
+## Настройки alerting
+kube-prometheus-stack:
+  grafana:
+    alerting:
+      contactpoints.yaml:
+        apiVersion: 1
+        contactPoints:
+          - orgId: 1
+            name: telegram-message-node
+            receivers:
+              - uid: telegram-message-node
+                type: telegram
+                settings:
+                  bottoken: <bot-token>
+                  chatid: "<chat-id>"
+                  message: '{{ "{{" }}  template "telegram.node" . {{ "}}" }}'
+                  parse_mode: HTML
+                  disableResolveMessage: false
+
+      policies.yaml:
+        apiVersion: 1
+        policies:
+          - orgId: 1
+            receiver: telegram-message-node
+            group_by: ['...']
+            routes:
+              - receiver: telegram-message-node
+                group_by: ['...']
+                object_matchers:
+                  - ['group', '=', 'NodeExporter']
+
+        templates:
+          - orgID: 1
+            name: telegram.node
+            template: |-
+              {{`{{ define "__alerts_list.node" -}}
+              {{ range . }}
+              {{if ne (index .Labels "alertname") "" -}}
+              <b><i>{{ index .Labels "alertname" }}</i></b>
+              {{ if eq .Status "firing" }}&#x1F534;{{ else }}&#x1F7E2;{{ end }}{{ if ne (index .Labels "involvedObject_name" ) "" -}}<i>Job:</i> <b>{{ index .Labels "involvedObject_name" }}</b>{{ else }}<i>Job:</i> <b>{{ index .Labels "job" }}</b>{{ end }}
+              &#x1F559; {{ .StartsAt.Format "15:04:05" }}    &#x1F5D3; {{ .StartsAt.Format "2006-01-02" }}
+              <i>Cluster: </i><a href="https://grafana.explore.ru/">"elma365"</a>
+              {{ end -}}
+              {{ if ne (index .Labels "instance") "" -}}<i> - instance: </i><b>{{ printf "%.100s" (index .Labels "instance") }}</b>{{ end }}
+              {{ if ne (index .Labels "pod") "" -}}<i> - pod: </i><b>{{ printf "%.100s" (index .Labels "pod") }}</b>
+              {{ end }}{{ if eq .Status "firing" }}
+              *Description*: {{ .Annotations.description }}
+              *Summary*: {{ .Annotations.summary }}{{ end }}
+              {{- end -}} {{- /* range */ -}}
+              {{- end -}} {{- /* define __alerts_list.node */ -}}
+              {{ define "telegram.node" }}
+                  {{ if gt (len .Alerts.Firing) 0 }}
+                  &#x1F6A8; <b>ALARM</b> (#{{ .Alerts.Firing | len }})
+                  {{- template "__alerts_list.node" .Alerts.Firing }}{{ end -}}
+                  {{ if gt (len .Alerts.Resolved) 0 }}
+                  &#x2705; <b>Resolved</b> (#{{ .Alerts.Resolved | len }})
+                  {{- template "__alerts_list.node" .Alerts.Resolved }}{{ end -}}
+              {{- end -}}{{- /* define __telegram */ -}}`}}
+
+      rules.yaml:
+        apiVersion: 1
+        groups:
+            - orgId: 1
+              name: 10s
+              folder: Alerts
+              interval: 10s
+              rules:
+                - uid: de5a6hyk2o7wgb
+                  title: Node down
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                        from: 600
+                        to: 0
+                      datasourceUid: prometheus
+                      model:
+                        editorMode: code
+                        expr: (up{instance=~"[0-9]+.*:9100"} == 0) +1
+                        instant: true
+                        intervalMs: 1000
+                        legendFormat: __auto
+                        maxDataPoints: 43200
+                        range: false
+                        refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator:
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 1m
+                  annotations:
+                      description: 'Failed to scrape {{`{{`}} $labels.job {{`}}`}} on {{`{{`}} $labels.instance {{`}}`}} for more than 2 minutes. Node seems down.'
+                      summary: 'Node {{`{{`}} $labels.instance {{`}}`}} is down'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: fe5a81bpwx5vkc
+                  title: HostHighCpuLoad
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: 100 - (avg by(instance,job) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 80
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'CPU load is > 80% VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host high CPU load (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ce5brbct9utxcf
+                  title: Postgresql down
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: (pg_up == 0) +1
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 3m
+                  annotations:
+                      description: 'Postgresql instance is down {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'Postgresql down (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: fe5bro1m6dpfkb
+                  title: PostgresqlTooManyConnections
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: sum by (instance, job, server) (pg_stat_activity_count) > min by (instance, job, server) (pg_settings_max_connections * 0.8)
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 3m
+                  annotations:
+                      description: 'PostgreSQL instance has too many connections (> 80%). {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'Postgresql too many connections (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: fe5brz6olgttse
+                  title: PostgresqlDeadLocks
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: increase(pg_stat_database_deadlocks{datname!~"template.*|postgres"}[10m]) > 5
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 3m
+                  annotations:
+                      description: 'PostgreSQL has dead-locks {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'Postgresql dead locks (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ee5bsk0wd48aob
+                  title: MongodbDown
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: (mongodb_up == 0) +1
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 3m
+                  annotations:
+                      description: 'MongoDB instance is down {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'MongoDB Down (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: be5bsow2prncwd
+                  title: MongodbReplicaMemberUnhealthy
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: (mongodb_rs_members_health == 0) +1
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 20m
+                  annotations:
+                      description: 'MongoDB replica member is not healthy {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'Mongodb replica member unhealthy (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ee5bsxptgsf7ke
+                  title: MongodbTooManyConnections
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: avg by(instance,job) (rate(mongodb_ss_connections{conn_type="current"}[10m])) / avg by(instance,job) (sum (mongodb_ss_connections) by (instance,job)) * 100 > 80
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Too many connections (> 80%) {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'MongoDB too many connections (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: fe5btph4lx5ogd
+                  title: RabbitmqNodeDown
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: (rabbitmq_up == 0)+1 or (sum(rabbitmq_exporter_build_info) by(job)  < sum(rabbitmq_exporter_build_info offset 1h) by(job))
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Less than 3 nodes running in RabbitMQ cluster {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'RabbitMQ node down (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ee5btu4lpcb28f
+                  title: RedisDown
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: (redis_up == 0) +1
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 3m
+                  annotations:
+                      description: 'Redis instance is down {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'Redis down (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: de5a729h2kc1sc
+                  title: HostOutOfMemory
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 10
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Node memory is filling up (< 10% left)  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host out of memory (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ce5a7494684qoc
+                  title: HostMemoryUnderMemoryPressure
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: rate(node_vmstat_pgmajfault[1m]) > 1000
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'The node is under heavy memory pressure. High rate of major page faults  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host memory under memory pressure (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: fe5a7ja6dy4g0b
+                  title: HostUnusualNetworkThroughputIn
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: sum by (instance,job) (rate(node_network_receive_bytes_total[2m])) / 1024 / 1024 > 100
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 10m
+                  annotations:
+                      description: 'Host network interfaces are probably receiving too much data (> 100 MB/s)  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host unusual network throughput in (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: de5a7kt9mtvr4f
+                  title: HostUnusualNetworkThroughputOut
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: sum by (instance,job) (rate(node_network_transmit_bytes_total[2m])) / 1024 / 1024 > 100
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 10m
+                  annotations:
+                      description: 'Host network interfaces are probably sending too much data (> 100 MB/s)  VALUE = {{`{{`}} $value {{`}}`}}'
+                      summary: 'Host unusual network throughput out (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ce5a7m1btuoe8a
+                  title: HostUnusualDiskReadRate
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: sum by (instance,job) (rate(node_disk_read_bytes_total[2m])) / 1024 / 1024 > 50
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 10m
+                  annotations:
+                      description: 'Disk is probably reading too much data (> 50 MB/s)  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host unusual disk read rate (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ee5a7nmawz5s0d
+                  title: HostUnusualDiskWriteRate
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: sum by (instance,job) (rate(node_disk_written_bytes_total[2m])) / 1024 / 1024 > 50
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 10m
+                  annotations:
+                      description: 'Disk is probably writing too much data (> 50 MB/s)  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host unusual disk write rate (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: de5a7s23v4f0ge
+                  title: HostOutOfDiskSpace
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: (node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 10 and ON (instance, device, mountpoint) node_filesystem_readonly == 0
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 10m
+                  annotations:
+                      description: 'Disk is almost full (< 10% left)  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host out of disk space (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ae5a7ufrqrj7kb
+                  title: HostDiskWillFillIn24Hours
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: (node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 10 and ON (instance, device, mountpoint) predict_linear(node_filesystem_avail_bytes{fstype!~"tmpfs"}[1h], 24 * 3600) < 0 and ON (instance, device, mountpoint) node_filesystem_readonly == 0
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 10m
+                  annotations:
+                      description: 'Filesystem is predicted to run out of space within the next 24 hours at current write rate  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host disk will fill in 24 hours (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ce5a7vym1idxcc
+                  title: HostOutOfInodes
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: node_filesystem_files_free{mountpoint ="/rootfs"} / node_filesystem_files{mountpoint="/rootfs"} * 100 < 10 and ON (instance, device, mountpoint) node_filesystem_readonly{mountpoint="/rootfs"} == 0
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 10m
+                  annotations:
+                      description: 'Disk is almost running out of available inodes (< 10% left)  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host out of inodes (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: fe5a7yqw4rgg0b
+                  title: HostInodesWillFillIn24Hours
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: node_filesystem_files_free{mountpoint ="/rootfs"} / node_filesystem_files{mountpoint="/rootfs"} * 100 < 10 and predict_linear(node_filesystem_files_free{mountpoint="/rootfs"}[1h], 24 * 3600) < 0 and ON (instance, device, mountpoint) node_filesystem_readonly{mountpoint="/rootfs"} == 0
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 10m
+                  annotations:
+                      description: 'Filesystem is predicted to run out of inodes within the next 24 hours at current write rate  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host inodes will fill in 24 hours (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ae5a8mh0yca2oa
+                  title: HostOomKillDetected
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: increase(node_vmstat_oom_kill[1m]) > 0
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'OOM kill detected  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host OOM kill detected (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ae5b4zjymfmyoa
+                  title: HostUnusualDiskReadLatency
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: rate(node_disk_read_time_seconds_total[1m]) / rate(node_disk_reads_completed_total[1m]) > 0.1 and rate(node_disk_reads_completed_total[1m]) > 0
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 15m
+                  annotations:
+                      description: 'Disk latency is growing (read operations > 100ms)  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host unusual disk read latency (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ce5b56897ak8wb
+                  title: HostUnusualDiskWriteLatency
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: rate(node_disk_write_time_seconds_totali{device!~"mmcblk.+"}[1m]) / rate(node_disk_writes_completed_total{device!~"mmcblk.+"}[1m]) > 0.1 and rate(node_disk_writes_completed_total{device!~"mmcblk.+"}[1m]) > 0
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 15m
+                  annotations:
+                      description: 'Disk latency is growing (write operations > 100ms)  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host unusual disk write latency (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: fe5b5bcmkhkw0c
+                  title: HostCpuStealNoisyNeighbor
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: avg by(instance,job) (rate(node_cpu_seconds_total{mode="steal"}[5m])) * 100 > 10
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 10m
+                  annotations:
+                      description: 'CPU steal is > 10%. A noisy neighbor is killing VM performances or a spot instance may be out of credit.  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host CPU steal noisy neighbor (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: fe5b5mkycsy68b
+                  title: HostContextSwitching
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: (rate(node_context_switches_total{job!="node-exporter"}[5m])) / (count without(cpu, mode) (node_cpu_seconds_total{mode="idle"})) > 2500
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 10m
+                  annotations:
+                      description: 'Context switching is growing on node (> 2500 / s)  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host context switching (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: true
+                - uid: de5b5q4f29xj4f
+                  title: HostSwapIsFillingUp
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: (1 - (node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes)) * 100 > 80
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 50m
+                  annotations:
+                      description: 'Swap is filling up (>80%)  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host swap is filling up (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ae5b5rf8dro5cb
+                  title: HostSystemdServiceCrashed
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: node_systemd_unit_state{state="failed"} == 1
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'SystemD service crashed  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host SystemD service crashed (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ee5b5z9skrw8wa
+                  title: HostKernelVersionDeviations
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: count(sum(label_replace(node_uname_info, "kernel", "$1", "release", "([0-9]+.[0-9]+.[0-9]+).*")) by (kernel)) > 1
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Different kernel versions are running  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host kernel version deviations (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: fe5b659h55e68a
+                  title: HostNetworkReceiveErrors
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: rate(node_network_receive_errs_total[2m]) / rate(node_network_receive_packets_total[2m]) > 0.01
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Instance has encountered {{`{{`}} printf "%.0f" $value {{`}}`}} receive errors in the last five minutes.  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host Network Receive Errors (instance {{`{{`}} $labels.instance {{`}}`}}:{{`{{`}} $labels.device {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: fe5b69ufpr0g0f
+                  title: HostNetworkTransmitErrors
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: rate(node_network_transmit_errs_total[2m]) / rate(node_network_transmit_packets_total[2m]) > 0.01
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Instance has encountered {{`{{`}} printf "%.0f" $value {{`}}`}} transmit errors in the last five minutes.  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host Network Transmit Errors (instance {{`{{`}} $labels.instance {{`}}`}}:{{`{{`}} $labels.device {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: be5b6c7xf55vke
+                  title: HostNetworkInterfaceSaturated
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: (rate(node_network_receive_bytes_total{device!~"^tap.*"}[1m]) + rate(node_network_transmit_bytes_total{device!~"^tap.*"}[1m])) / node_network_speed_bytes{device!~"^tap.*"} > 0.8
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'The network interface is getting overloaded.  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host Network Interface Saturated (instance {{`{{`}} $labels.instance {{`}}`}}:{{`{{`}} $labels.interface {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: fe5b6ez7xcb28b
+                  title: HostConntrackLimit
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: node_nf_conntrack_entries / node_nf_conntrack_entries_limit > 0.8
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'The number of conntrack is approching limit  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host conntrack limit (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: fe5b6h6zh454we
+                  title: HostClockSkew
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: (node_timex_offset_seconds > 0.05 and deriv(node_timex_offset_seconds[5m]) >= 0) or (node_timex_offset_seconds < -0.05 and deriv(node_timex_offset_seconds[5m]) <= 0)
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Clock skew detected. Clock is out of sync.  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host clock skew (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: fe5b6iig8nklca
+                  title: HostClockNotSynchronising
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: min_over_time(node_timex_sync_status[1m]) == 0 and node_timex_maxerror_seconds >= 16
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Clock not synchronising.  VALUE = {{`{{`}} index $values "A" {{`}}`}}'
+                      summary: 'Host clock not synchronising (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: de5bv0y016xhca
+                  title: RedisMissingMaster
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: (redis_instance_info{role="master"} == 0) +1
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Redis cluster has no node marked as master. {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'Redis missing master (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: de5bvbf6g8k5cb
+                  title: RedisDisconnectedSlaves
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: count without (instance, job) (redis_connected_slaves) - sum without (instance, job) (redis_connected_slaves) - 1 > 0
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Redis not replicating for all slaves. Consider reviewing the redis replication status. {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'Redis disconnected slaves (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: de5bvjh4lflkwc
+                  title: RedisReplicationBroken
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: delta(redis_connected_slaves[10m]) < 0
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Redis instance lost a slave {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'Redis replication broken (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ee5bvph5ib11cc
+                  title: RedisTooManyConnections
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: redis_connected_clients / redis_config_maxclients * 100 > 90
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Redis is running out of connections (> 90% used) {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'Redis too many connections (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: be5bvud7wnjswa
+                  title: RedisRejectedConnections
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: increase(redis_rejected_connections_total[10m]) > 0
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Some connections to Redis has been rejected {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'Redis rejected connections (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ee5bxallyfi80b
+                  title: PostgresqlUnusedReplicationSlot
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: (pg_replication_slots_active == 0) +1
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 10m
+                  annotations:
+                      description: 'Unused Replication Slots {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'Postgresql unused replication slot (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: true
+                - uid: ce5bxm0wak83ke
+                  title: MongodbNumberCursorsOpen
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: mongodb_ss_metrics_cursor_open{csr_type="total"} > 10 * 1000
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Too many cursors opened by MongoDB for clients (> 10k) {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'MongoDB number cursors open (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ee5bxqcbn43y8f
+                  title: MongodbCursorsTimeouts
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: increase(mongodb_ss_metrics_cursor_timedOut[10m]) > 100
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Too many cursors are timing out {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'MongoDB cursors timeouts (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ce5by4vm8c45cf
+                  title: RabbitmqTooManyUnackMessages
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: sum(rabbitmq_queue_messages_unacknowledged) by (queue) > 1000
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Too many unacknowledged messages {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'RabbitMQ too many unack messages (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ee5by8er0ak1se
+                  title: RabbitmqTooManyConnections
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: rabbitmq_connectionsTotal > 1000
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'The total connections of a node is too high {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'RabbitMQ too many connections (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: be5byhusboveod
+                  title: RabbitmqOutOfMemory
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: rabbitmq_node_mem_used / rabbitmq_node_mem_limit * 100 > 90
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Memory available for RabbmitMQ is low (< 10%) {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'RabbitMQ out of memory (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ee5byrtp2ywowb
+                  title: RabbitmqTooManyMessagesInQueue
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: rabbitmq_queue_messages_ready{} > 1000
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                      description: 'Queue is filling up (> 1000 msgs) {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'RabbitMQ too many messages in queue (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: ee5byy4n3d340a
+                  title: RabbitmqSlowQueueConsuming
+                  condition: C
+                  data:
+                    - refId: A
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: prometheus
+                      model:
+                          editorMode: code
+                          expr: time() - rabbitmq_queue_head_message_timestamp{} > 400
+                          instant: true
+                          intervalMs: 1000
+                          legendFormat: __auto
+                          maxDataPoints: 43200
+                          range: false
+                          refId: A
+                    - refId: B
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params: []
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - B
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: A
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          reducer: last
+                          refId: B
+                          type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                          from: 600
+                          to: 0
+                      datasourceUid: __expr__
+                      model:
+                          conditions:
+                            - evaluator: 
+                                  params:
+                                      - 0
+                                  type: gt
+                              operator:
+                                  type: and
+                              query:
+                                  params:
+                                      - C
+                              reducer:
+                                  params: []
+                                  type: last
+                              type: query
+                          datasource:
+                              type: __expr__
+                              uid: __expr__
+                          expression: B
+                          intervalMs: 1000
+                          maxDataPoints: 43200
+                          refId: C
+                          type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 25m
+                  annotations:
+                      description: 'Queue messages are consumed slowly (> 60s) {{`{{`}} $labels.pod {{`}}`}}'
+                      summary: 'RabbitMQ slow queue consuming (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                      group: NodeExporter
+                  isPaused: false
+                - uid: b715oi76-824o-4t1d-8c10-85zfn3u81b1h9
+                  title: Rabbitmq-Many-Queue-Messages
+                  condition: C
+                  data:
+                    - refId: A
+                      queryType: range
+                      relativeTimeRange:
+                        from: 600
+                        to: 0
+                      datasourceUid: prometheus
+                      model:
+                        editorMode: code
+                        expr: 'sum(rabbitmq_queue_messages{}) > 9000'
+                        hide: false
+                        intervalMs: 1000
+                        maxDataPoints: 43200
+                        queryType: range
+                        refId: A
+                    - refId: B
+                      relativeTimeRange:
+                        from: 600
+                        to: 0
+                      datasourceUid: __expr__
+                      model:
+                        conditions:
+                            - evaluator:
+                                params: []
+                                type: gt
+                              operator:
+                                type: and
+                              query:
+                                params:
+                                    - B
+                              reducer:
+                                params: []
+                                type: last
+                              type: query
+                        datasource:
+                            type: __expr__
+                            uid: __expr__
+                        expression: A
+                        hide: false
+                        intervalMs: 1000
+                        maxDataPoints: 43200
+                        reducer: last
+                        refId: B
+                        type: reduce
+                    - refId: C
+                      relativeTimeRange:
+                        from: 600
+                        to: 0
+                      datasourceUid: __expr__
+                      model:
+                        conditions:
+                            - evaluator:
+                                params:
+                                    - 0
+                                type: gt
+                              operator:
+                                type: and
+                              query:
+                                params:
+                                    - C
+                              reducer:
+                                params: []
+                                type: last
+                              type: query
+                        datasource:
+                            type: __expr__
+                            uid: __expr__
+                        expression: B
+                        hide: false
+                        intervalMs: 1000
+                        maxDataPoints: 43200
+                        refId: C
+                        type: threshold
+                  noDataState: OK
+                  execErrState: OK
+                  for: 5m
+                  annotations:
+                    description: 'Too many queue messages > 9000 {{`{{`}} $labels.pod {{`}}`}}'
+                    summary: 'RabbitMQ too many queue messages (instance {{`{{`}} $labels.instance {{`}}`}})'
+                  labels:
+                    group: NodeExporter
+                  isPaused: false

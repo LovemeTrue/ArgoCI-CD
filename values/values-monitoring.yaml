@@ -1,0 +1,81 @@
+# -- Настройки monitoring
+kube-prometheus-stack:
+  # -- Настройки grafana
+  grafana:
+    assertNoLeakedSecrets: false
+    # -- адрес по которому будет доступна grafana
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - grafana.jesuswise.local
+      # -- настройка tls
+      # tls: 
+      #   - secretName: "mycompany-cert"
+      #     hosts:
+      #       - grafana.mycompany.com
+      annotations: {}
+    # -- учетные данные администратора
+    adminUser: admin
+    adminPassword: admin
+    # -- список используемых плагинов
+    plugins:
+    - camptocamp-prometheus-alertmanager-datasource
+    - flant-statusmap-panel
+    - vonage-status-panel
+    sidecar:
+      # -- включить mimir в качестве источника данных
+      # datasources:
+      #   enabled: true
+      #   defaultDatasourceEnabled: true
+      #   isDefaultDatasource: true
+      #   uid: prometheus
+      #   url: http://mimir-nginx:80/prometheus
+      dashboards:
+        enabled: true
+        label: "grafana_dashboard"
+        labelValue: ""
+        annotations:
+          grafana-dashboard-folder: /tmp/dashboards/Main
+        folderAnnotation: grafana-dashboard-folder
+        provider:
+          allowUiUpdates: true
+          foldersFromFilesStructure: true
+      ## параметры подключения к приватному registry
+      image:
+      # адрес и путь для приватного registry
+        registry: hub.elma365.tech/docker/addons
+        repository: kiwigrid/k8s-sidecar
+        tag: 1.27.4
+      #   pullPolicy: IfNotPresent
+    image:
+      registry: hub.elma365.tech/docker/addons
+      repository: grafana/grafana
+      tag: "11.2.0"
+      # sha: ""
+      # pullPolicy: IfNotPresent
+      # pullSecrets: []
+    initChownData:
+      enabled: true
+      image:
+        registry: hub.elma365.tech/docker/addons
+        tag: "1.31.1"
+        # pullPolicy: IfNotPresent
+
+  # -- Настройки prometheus
+  prometheus:
+    prometheusSpec:
+      # -- включить mimir в качестве долгосрочного хранилища
+      # remoteWrite:
+      # - url: http://mimir-nginx:80/api/v1/push
+      replicas: 1
+      serviceMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelectorNilUsesHelmValues: false
+      scrapeConfigSelectorNilUsesHelmValues: false
+      ## -- Как долго хранить метрики
+      retention: 1d
+      ## -- Максимальный размер метрик
+      retentionSize: ""
+  global:
+    imageRegistry: "hub.elma365.tech/docker/addons"
+    imagePullSecrets: []
