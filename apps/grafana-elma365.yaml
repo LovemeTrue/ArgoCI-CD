@@ -13,7 +13,7 @@ spec:
     path: 0/monitoring
     helm:
       valueFiles:
-        - grafana-values.yaml
+        - values-monitoring.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
