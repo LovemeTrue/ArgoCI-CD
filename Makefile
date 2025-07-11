@@ -360,6 +360,20 @@ release-pyroscope:
 	@echo "📥 Копируем values/pyroscope-values.yaml..."
 	@cp values/pyroscope-values.yaml $(VERSION)/pyroscope/
 
+.PHONY: release-loki
+
+release-loki:
+	@echo "📦 Скачиваем чарт Loki из grafana..."
+	@helm repo add grafana https://charts.elma365.tech || true
+	@helm repo update
+	@helm pull elma365/loki --untar
+	@mkdir -p $(VERSION)/loki
+	@mv loki/* $(VERSION)/loki/
+	@rm -rf loki
+
+	@echo "📥 Копируем values-loki.yaml..."
+	@cp values/values-loki.yaml $(VERSION)/loki/
+	
 
 .PHONY: release-full
 release-full:  release gen-apps cleanup-git cleanup-old-apps

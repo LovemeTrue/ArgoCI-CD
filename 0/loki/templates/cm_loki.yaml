@@ -1,0 +1,43 @@
+# grafana-datasource-loki-configmap.yaml
+{{- if eq (toString .Values.global.provisioner) "deckhouse" }}
+apiVersion: deckhouse.io/v1
+kind: GrafanaAdditionalDatasource
+metadata:
+  name: loki
+spec:
+  access: Proxy
+  basicAuth: false
+  jsonData:
+    derivedFields:
+      - datasourceUid: tempo
+        matcherRegex: "(?:trace.traceid|traceid|traceId)(?:\":|=)\"(\\w+)\""
+        url: '$${__value.raw}'
+        name: traceid
+
+  type: loki
+  url: http://loki-gateway.monitoring
+---
+{{- else }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasource-loki
+  labels:
+    grafana_datasource: "1"
+data:
+  loki-datasource.yaml: |-
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        url: http://loki-gateway
+        access: proxy
+        editable: true
+        jsonData:
+          derivedFields:
+            - datasourceUid: Tempo
+              matcherRegex: "(?:trace.traceid|traceid)(?:\":|=)\"(\\w+)\""
+              url: '$${__value.raw}'
+              name: traceid
+---
+{{- end }}
