@@ -23,14 +23,7 @@ tempo:
     # pullPolicy: IfNotPresent
     # pullSecrets: 
     #   - myRegistryKeySecretName
-    metricsGenerator:
-      enabled: true
-      config:
-        storage:
-          path: /tmp/metrics
-        processor:
-          span_metrics:
-            enabled: true
+  
   metricsGenerator:
       enabled: true
       config:
