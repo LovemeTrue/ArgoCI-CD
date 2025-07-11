@@ -2,6 +2,15 @@ global:
 ## Настройки provisioner (k8s, deckhouse)
   provisioner: "deckhouse"
 tempo:
+  metricsGenerator:
+    enabled: true
+    config:
+      search_enabled: true
+      storage:
+        path: "/tmp/tempo"
+      processor:
+        span_metrics:
+          enabled: true
   tempo:
     retention: 24h
     storage:
@@ -23,21 +32,6 @@ tempo:
     # pullPolicy: IfNotPresent
     # pullSecrets: 
     #   - myRegistryKeySecretName
-    metricsGenerator:
-      enabled: true
-      config:
-        search_enabled: true
-        # -- включить генератор метрик
-        # -- для тестирования и отладки
-        # -- не рекомендуется использовать в продакшене
-        storage:  
-          path: /tmp/metrics
-        processor:
-          span_metrics:
-            enabled: true
-      # -- включить генератор метрик
-      # -- для тестирования и отладки
-      # -- не рекомендуется использовать в продакшене
 extraEnv:
  - name: SSL_CERT_FILE
    value: /home/kind/ssl/rootCA.pem
