@@ -26,7 +26,11 @@ tempo:
     metricsGenerator:
       enabled: true
       config:
-        storage:
+        search_enabled: true
+        # -- включить генератор метрик
+        # -- для тестирования и отладки
+        # -- не рекомендуется использовать в продакшене
+        storage:  
           path: /tmp/metrics
         processor:
           span_metrics:
