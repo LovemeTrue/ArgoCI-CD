@@ -24,14 +24,14 @@ tempo:
     # pullSecrets: 
     #   - myRegistryKeySecretName
   
-  metricsGenerator:
-      enabled: true
-      config:
-        storage:
-          path: /tmp/metrics
-        processor:
-          span_metrics:
-            enabled: true
+    metricsGenerator:
+        enabled: true
+        config:
+          storage:
+            path: /tmp/metrics
+          processor:
+            span_metrics:
+              enabled: true
 extraEnv:
  - name: SSL_CERT_FILE
    value: /home/kind/ssl/rootCA.pem

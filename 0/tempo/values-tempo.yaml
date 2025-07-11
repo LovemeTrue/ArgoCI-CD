@@ -25,14 +25,15 @@ tempo:
     #   - myRegistryKeySecretName
     metricsGenerator:
       enabled: true
+      config:
+        storage:
+          path: /tmp/metrics
+        processor:
+          span_metrics:
+            enabled: true
       # -- включить генератор метрик
       # -- для тестирования и отладки
       # -- не рекомендуется использовать в продакшене
-  metricsGenerator:
-    enabled: true
-    # -- включить генератор метрик
-    # -- для тестирования и отладки
-    # -- не рекомендуется использовать в продакшене
 extraEnv:
  - name: SSL_CERT_FILE
    value: /home/kind/ssl/rootCA.pem
