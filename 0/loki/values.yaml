@@ -16,9 +16,9 @@ loki:
     # -- Конфигурация хранилища.
     storage:
       bucketNames:
-        chunks: loki
-        ruler: loki
-        admin: loki
+        chunks: chunks
+        ruler: ruler
+        admin: admin
       type: s3
       s3:
         s3: null
@@ -31,6 +31,8 @@ loki:
         insecure: false
         # -- Использовать SSL для подключения к S3
         http_config: {}
+
+
     # -- Дополнительная конфигурация уплотнителя
     compactor:
       delete_request_store: s3
