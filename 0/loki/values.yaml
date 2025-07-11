@@ -24,8 +24,8 @@ loki:
         s3: null
         endpoint: master.sale.elewise.com:9000
         region: ru-central-1
-        secretAccessKey: elma365user
-        accessKeyId: SecretPassword
+        secretAccessKey: SecretPassword
+        accessKeyId: elma365user
         signatureVersion: null
         s3ForcePathStyle: true
         insecure: false
