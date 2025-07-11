@@ -16,7 +16,7 @@ spec:
         - values-tempo.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: d8-monitoring
+    namespace: monitoring
   syncPolicy:
     automated:
       prune: true
