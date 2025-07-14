@@ -25,7 +25,7 @@ tempo:
         ring:
           kvstore:
             store: inmemory
-      trace_idle_period: 10s
+      trace_idle_period: 30s
       max_block_duration: 5m
   
     server:
