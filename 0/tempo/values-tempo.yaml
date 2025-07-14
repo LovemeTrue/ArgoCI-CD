@@ -63,9 +63,6 @@ tempo:
           store: memberlist
       storage:
         path: /tmp/tempo
-      processors:
-        - service-graphs
-        - span-metrics
   tempo:
     retention: 24h
     storage:

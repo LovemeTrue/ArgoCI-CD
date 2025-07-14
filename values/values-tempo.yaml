@@ -3,94 +3,78 @@ global:
   provisioner: "deckhouse"
 tempo:
   config: |
-  multitenancy_enabled: false
-  usage_report:
-    reporting_enabled: true
+    multitenancy_enabled: false
+    usage_report:
+      reporting_enabled: true
 
-  compactor:
-    compaction:
-      block_retention: 24h
+    compactor:
+      compaction:
+        block_retention: 24h
 
-  distributor:
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-          http:
+    distributor:
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+            http:
 
-  ingester:
-    lifecycler:
-      ring:
-        kvstore:
-          store: inmemory
-    trace_idle_period: 10s
-    max_block_duration: 5m
+    ingester:
+      lifecycler:
+        ring:
+          kvstore:
+            store: inmemory
+      trace_idle_period: 10s
+      max_block_duration: 5m
 
-  server:
-    http_listen_port: 3200
-    grpc_listen_port: 9095
+    server:
+      http_listen_port: 3200
+      grpc_listen_port: 9095
 
-  storage:
-    trace:
-      backend: s3
-      s3:
-        bucket: tempo
-        endpoint: master.sale.elewise.com:9000
-        access_key: elma365user
-        secret_key: SecretPassword
-        insecure: false
-        tls_insecure_skip_verify: true
-        forcepathstyle: true
-
-  querier:
-    frontend_worker:
-      frontend_address: tempo-query-frontend:9095
-
-  query_frontend:
-    search:
-      duration_slo: 5s
-
-  overrides:
-    metrics_generator_processors:
-      - service-graphs
-      - span-metrics
-
-  metrics_generator:
-    search_enabled: true
     storage:
-      backend: s3
-      s3:
-        bucket: tempo
-        endpoint: master.sale.elewise.com:9000
-        access_key: elma365user
-        secret_key: SecretPassword
-        insecure: false
-        tls_insecure_skip_verify: true
-        forcepathstyle: true
-    processor:
-      span_metrics:
-        enabled: true
-  tempo:
-    retention: 24h
-    storage:
+      retention: 24h
       trace:
         backend: s3
-        # store traces in s3
         s3:
-          bucket: tempo                                  # store traces in this bucket
-          endpoint: master.sale.elewise.com:9000                     # api endpoint
-          access_key: elma365user                         # optional. access key when using static credentials.
-          secret_key: SecretPassword                       # optional. secret key when using static credentials.
-          insecure: false                                 # optional. enable if endpoint is http
-          tls_insecure_skip_verify: true                 # turns off TLS handshake verification
+          bucket: tempo
+          endpoint: master.sale.elewise.com:9000
+          access_key: elma365user
+          secret_key: SecretPassword
+          insecure: false
+          tls_insecure_skip_verify: true
+          forcepathstyle: true
     fullnameOverride: "tempo"
-    ## параметры подключения к приватному registry
-    ## адрес и путь для приватного registry
     repository: hub.elma365.tech/docker/addons/grafana/tempo
     tag: "2.5.0"
-    # pullPolicy: IfNotPresent
-    # pullSecrets: 
-    #   - myRegistryKeySecretNam
+
+    querier:
+      frontend_worker:
+        frontend_address: tempo-query-frontend:9095
+
+    query_frontend:
+      search:
+        duration_slo: 5s
+
+    overrides:
+      metrics_generator_processors:
+        - service-graphs
+        - span-metrics
+
+    metrics_generator:
+      search_enabled: true
+      storage:
+        backend: s3
+        s3:
+          bucket: tempo
+          endpoint: master.sale.elewise.com:9000
+          access_key: elma365user
+          secret_key: SecretPassword
+          insecure: false
+          tls_insecure_skip_verify: true
+          forcepathstyle: true
+      processor:
+        span_metrics:
+          enabled: true
+
 extraEnv:
  - name: SSL_CERT_FILE
    value: /home/kind/ssl/rootCA.pem
