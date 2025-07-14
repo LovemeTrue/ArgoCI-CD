@@ -32,6 +32,15 @@ tempo:
       http_listen_port: 3200
       grpc_listen_port: 9095
 
+    metrics_generator:
+      registry:
+        collection_interval: 15s
+      ring:
+        kvstore:
+          store: memberlist
+      storage:
+        path: /tmp/tempo
+      
     storage:
       trace:
         backend: s3
@@ -53,14 +62,7 @@ tempo:
         - service-graphs
         - span-metrics
 
-    metrics_generator:
-      registry:
-        collection_interval: 15s
-      ring:
-        kvstore:
-          store: memberlist
-      storage:
-        path: /tmp/tempo
+    
   tempo:
     retention: 24h
     storage:
