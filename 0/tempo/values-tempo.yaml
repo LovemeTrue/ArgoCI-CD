@@ -2,7 +2,7 @@ global:
 ## Настройки provisioner (k8s, deckhouse)
   provisioner: "deckhouse"
 tempo:
-  metricsGenerator:
+  metrics_generator:
     enabled: true
     config:
       search_enabled: true
