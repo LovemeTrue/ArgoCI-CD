@@ -17,7 +17,13 @@ tempo:
           protocols:
             grpc:
             http:
-
+        jaeger:
+          protocols:
+            thrift_compact:
+            thrift_binary:
+            thrift_http:
+            grpc:
+            http:
     ingester:
       lifecycler:
         ring:
@@ -25,7 +31,7 @@ tempo:
             store: inmemory
       trace_idle_period: 10s
       max_block_duration: 5m
-
+  
     server:
       http_listen_port: 3200
       grpc_listen_port: 9095
