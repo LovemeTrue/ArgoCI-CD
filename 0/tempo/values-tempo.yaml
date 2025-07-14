@@ -42,10 +42,6 @@ tempo:
           tls_insecure_skip_verify: true
           forcepathstyle: true
 
-    querier:
-      frontend_worker:
-        frontend_address: tempo-query-frontend:9095
-
     query_frontend:
       search:
         duration_slo: 5s
