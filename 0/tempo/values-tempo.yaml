@@ -60,9 +60,9 @@ tempo:
         duration_slo: 5s
 
     overrides:
-      metrics_generator_processors:
-        - service-graphs
-        - span-metrics
+      metrics_generator_processors: ['local-blocks']
+      #  - service-graphs
+      #  - span-metrics
 
     
   tempo:
