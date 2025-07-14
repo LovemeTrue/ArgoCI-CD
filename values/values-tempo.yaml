@@ -2,15 +2,74 @@ global:
 ## Настройки provisioner (k8s, deckhouse)
   provisioner: "deckhouse"
 tempo:
-  metricsGenerator:
-    enabled: true
-    config:
-      search_enabled: true
-      storage:
-        path: "/tmp/tempo"
-      processor:
-        span_metrics:
-          enabled: true
+  config: |
+  multitenancy_enabled: false
+  usage_report:
+    reporting_enabled: true
+
+  compactor:
+    compaction:
+      block_retention: 24h
+
+  distributor:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+
+  ingester:
+    lifecycler:
+      ring:
+        kvstore:
+          store: inmemory
+    trace_idle_period: 10s
+    max_block_duration: 5m
+
+  server:
+    http_listen_port: 3200
+    grpc_listen_port: 9095
+
+  storage:
+    trace:
+      backend: s3
+      s3:
+        bucket: tempo
+        endpoint: master.sale.elewise.com:9000
+        access_key: elma365user
+        secret_key: SecretPassword
+        insecure: false
+        tls_insecure_skip_verify: true
+        forcepathstyle: true
+
+  querier:
+    frontend_worker:
+      frontend_address: tempo-query-frontend:9095
+
+  query_frontend:
+    search:
+      duration_slo: 5s
+
+  overrides:
+    metrics_generator_processors:
+      - service-graphs
+      - span-metrics
+
+  metrics_generator:
+    search_enabled: true
+    storage:
+      backend: s3
+      s3:
+        bucket: tempo
+        endpoint: master.sale.elewise.com:9000
+        access_key: elma365user
+        secret_key: SecretPassword
+        insecure: false
+        tls_insecure_skip_verify: true
+        forcepathstyle: true
+    processor:
+      span_metrics:
+        enabled: true
   tempo:
     retention: 24h
     storage:
