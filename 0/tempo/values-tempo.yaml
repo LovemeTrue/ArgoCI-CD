@@ -33,7 +33,8 @@ tempo:
       grpc_listen_port: 9095
 
     metrics_generator:
-      processor: [local-blocks]
+      processor:
+        local_blocks:
       registry:
         collection_interval: 15s
       ring:
