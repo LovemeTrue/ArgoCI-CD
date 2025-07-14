@@ -3,7 +3,7 @@ global:
   provisioner: "deckhouse"
 tempo:
   tempo:
-    metrics_generator:
+    metricsGenerator:
     enabled: true
     config:
       search_enabled: true
