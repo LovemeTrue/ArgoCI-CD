@@ -19,11 +19,7 @@ tempo:
             http:
         jaeger:
           protocols:
-            thrift_compact:
-            thrift_binary:
-            thrift_http:
             grpc:
-            http:
     ingester:
       lifecycler:
         ring:
