@@ -4,6 +4,7 @@ global:
 tempo:
   metricsGenerator:
     enabled: true
+    remoteWriteUrl: ""
     config:
       search_enabled: true
       storage:
