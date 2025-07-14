@@ -15,17 +15,17 @@ tempo:
       receivers:
         otlp:
           protocols:
-            grpc:
-            http:
+            grpc: {}
+            http: {}
         jaeger:
           protocols:
-            grpc:
+            grpc: {}
     ingester:
       lifecycler:
         ring:
           kvstore:
             store: inmemory
-      trace_idle_period: 30s
+      trace_idle_period: 10s
       max_block_duration: 5m
   
     server:
