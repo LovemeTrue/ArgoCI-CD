@@ -99,7 +99,7 @@ extraVolumeMounts:
 jaeger:
   environmentVariables:
     MEMORY_MAX_TRACES: 100000
-    SPAN_STORAGE_TYPE: badger
+    SPAN_STORAGE_TYPE: grpc
     BADGER_EPHEMERAL: false
     BADGER_DIRECTORY_VALUE: /badger/data
     BADGER_DIRECTORY_KEY: /badger/key
