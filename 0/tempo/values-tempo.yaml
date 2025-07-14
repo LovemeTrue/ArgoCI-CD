@@ -104,7 +104,7 @@ jaeger:
     BADGER_DIRECTORY_VALUE: /badger/data
     BADGER_DIRECTORY_KEY: /badger/key
     REPORTER_TYPE: grpc
-    REPORTER_GRPC_HOST_PORT: tempo:9095
+    REPORTER_GRPC_HOST_PORT: tempo:14250
     REPORTER_GRPC_RETRY_MAX: 100
   tolerations: 
     - key: "dedicated"
