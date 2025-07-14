@@ -29,7 +29,7 @@ tempo:
       max_block_duration: 5m
   
     server:
-      http_listen_port: 14250
+      http_listen_port: 3100
       grpc_listen_port: 9095
 
     metrics_generator:
