@@ -6,15 +6,16 @@ tempo:
     enabled: true
     config:
       search_enabled: true
-      backend: s3
-        # store traces in s3
-      s3:
-        bucket: tempo                                  # store traces in this bucket
-        endpoint: master.sale.elewise.com:9000                     # api endpoint
-        access_key: elma365user                         # optional. access key when using static credentials.
-        secret_key: SecretPassword                       # optional. secret key when using static credentials.
-        insecure: false                                 # optional. enable if endpoint is http
-        tls_insecure_skip_verify: true
+      storage:
+        backend: s3
+          # store traces in s3
+        s3:
+          bucket: tempo                                  # store traces in this bucket
+          endpoint: master.sale.elewise.com:9000                     # api endpoint
+          access_key: elma365user                         # optional. access key when using static credentials.
+          secret_key: SecretPassword                       # optional. secret key when using static credentials.
+          insecure: false                                 # optional. enable if endpoint is http
+          tls_insecure_skip_verify: true
       processor:
         span_metrics:
           enabled: true
