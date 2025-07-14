@@ -56,20 +56,16 @@ tempo:
         - span-metrics
 
     metrics_generator:
-      search_enabled: true
+      registry:
+        collection_interval: 15s
+      ring:
+        kvstore:
+          store: memberlist
       storage:
-        backend: s3
-        s3:
-          bucket: tempo
-          endpoint: master.sale.elewise.com:9000
-          access_key: elma365user
-          secret_key: SecretPassword
-          insecure: false
-          tls_insecure_skip_verify: true
-          forcepathstyle: true
-      processor:
-        span_metrics:
-          enabled: true
+        path: /tmp/tempo
+      processors:
+        - service-graphs
+        - span-metrics
   tempo:
     retention: 24h
     storage:
