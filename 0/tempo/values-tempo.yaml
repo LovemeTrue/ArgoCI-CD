@@ -2,7 +2,8 @@ global:
 ## Настройки provisioner (k8s, deckhouse)
   provisioner: "deckhouse"
 tempo:
-  metrics_generator:
+  tempo:
+    metrics_generator:
     enabled: true
     config:
       search_enabled: true
@@ -19,7 +20,6 @@ tempo:
       processor:
         span_metrics:
           enabled: true
-  tempo:
     retention: 24h
     storage:
       trace:
