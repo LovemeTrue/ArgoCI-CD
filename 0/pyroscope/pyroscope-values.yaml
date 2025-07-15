@@ -8,7 +8,7 @@ pyroscope:
       existingSecret: "pyroscope-s3-creds"  # Secret с access_key/secret_key
       tls:
         enabled: true
-  alloy:
+alloy:
   enabled: true
   # Creating a configmap for Pyroscope Alloy integration
   configMap:
