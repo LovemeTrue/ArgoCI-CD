@@ -44,6 +44,13 @@ elma365:
 ## включение поддержки HAProxy Ingress для работы на платформе OpenShift
     openshift: false
 ## включить дашборды для grafana
+    podAnnotations:
+      profiles.grafana.com/cpu.scrape: "true"
+      profiles.grafana.com/cpu.port_name: http
+      profiles.grafana.com/goroutine.scrape: "true"
+      profiles.grafana.com/goroutine.port_name: http
+      profiles.grafana.com/memory.scrape: "true"
+      profiles.grafana.com/memory.port_name: http
     monitoring:
       enabled: true
       metrics:
