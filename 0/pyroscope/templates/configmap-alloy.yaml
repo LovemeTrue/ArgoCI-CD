@@ -8,9 +8,8 @@ metadata:
     {{- include "pyroscope.labels" . | nindent 4 }}
 data:
   config.alloy: |
-    logging {
-			level  = "info"
-			format = "logfmt"
+		logging {
+			level = "info"
 		}
 
 		discovery.kubernetes "pods" {
