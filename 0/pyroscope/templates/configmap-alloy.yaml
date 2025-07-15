@@ -48,9 +48,9 @@ data:
     	}
 
     	rule {
-    		action        = "replace"
+    		action        = "keep"
     		source_labels = ["__meta_kubernetes_namespace"]
-    		target_label  = "namespace"
+    		regex         = "elma365|elma365-dbs"
     	}
 
     	rule {
