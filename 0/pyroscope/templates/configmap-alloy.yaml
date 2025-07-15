@@ -9,65 +9,107 @@ metadata:
 data:
   config.alloy: |
     logging {
-      level = "info"
-    }
+			level  = "info"
+			format = "logfmt"
+		}
 
-    discovery.kubernetes "pods" {
-      role = "pod"
-    }
+		discovery.kubernetes "pods" {
+			role = "pod"
+		}
 
-    discovery.relabel "my_apps" {
-      targets = discovery.kubernetes.pods.targets
+		discovery.relabel "elma" {
+			targets = discovery.kubernetes.pods.targets
 
-      rule {
-        source_labels = ["__meta_kubernetes_namespace"]
-        regex         = "elma365|elma365-dbs"
-        action        = "keep"
-      }
+			# только нужные неймспейсы
+			rule {
+				source_labels = ["__meta_kubernetes_namespace"]
+				regex         = "elma365|elma365-dbs"
+				action        = "keep"
+			}
 
-      rule {
-        source_labels = ["__meta_kubernetes_pod_label_app"]
-        regex         = ".*"
-        action        = "keep"
-      }
+			# только поды с label app
+			rule {
+				source_labels = ["__meta_kubernetes_pod_label_app"]
+				regex         = ".*"
+				action        = "keep"
+			}
 
-      rule {
-        target_label  = "__param_profile_type"
-        replacement   = "cpu"
-        action        = "replace"
-      }
+			# только контейнеры с нужными портами
+			rule {
+				source_labels = ["__meta_kubernetes_pod_container_port_number"]
+				regex         = "3000|4000|5000"
+				action        = "keep"
+			}
 
-      rule {
-        target_label  = "__param_port"
-        replacement   = "8080"
-        action        = "replace"
-      }
+			# Добавляем параметры запроса профилей
+			rule {
+				target_label  = "__param_profile_type"
+				replacement   = "cpu"
+				action        = "replace"
+			}
 
-      rule {
-        target_label  = "__param_path"
-        replacement   = "/debug/pprof/profile"
-        action        = "replace"
-      }
+			rule {
+				target_label  = "__param_path"
+				replacement   = "/debug/pprof/profile"
+				action        = "replace"
+			}
 
-      rule {
-        source_labels = ["__address__", "__param_port"]
-        separator     = ":"
-        target_label  = "__address__"
-        action        = "replace"
-        replacement   = "$1:$2"
-      }
-    }
+			rule {
+				target_label  = "__param_port"
+				source_labels = ["__meta_kubernetes_pod_container_port_number"]
+				action        = "replace"
+			}
 
-    profiling.scrape "pyroscope" {
-      targets = discovery.relabel.my_apps.output
-      forward_to = [profiling.write.pyro.receiver]
-    }
+			rule {
+				source_labels = ["__address__", "__param_port"]
+				separator     = ":"
+				target_label  = "__address__"
+				action        = "replace"
+				replacement   = "$1:$2"
+			}
 
-    profiling.write "pyro" {
-      endpoint {
-        url = "http://pyroscope.pyroscope.svc.cluster.local:4040"
-      }
-    }
+			# Дополнительные метки
+			rule {
+				source_labels = ["__meta_kubernetes_namespace"]
+				target_label  = "namespace"
+				action        = "replace"
+			}
+
+			rule {
+				source_labels = ["__meta_kubernetes_pod_name"]
+				target_label  = "pod"
+				action        = "replace"
+			}
+
+			rule {
+				source_labels = ["__meta_kubernetes_pod_container_name"]
+				target_label  = "container"
+				action        = "replace"
+			}
+		}
+
+		profiling.scrape "cpu_profiles" {
+			targets     = discovery.relabel.elma.output
+			forward_to  = [profiling.write.to_pyro.receiver]
+
+			profiling_config {
+				profile.process_cpu {
+					enabled = true
+				}
+				profile.heap {
+					enabled = true
+				}
+				profile.goroutine {
+					enabled = true
+				}
+			}
+		}
+
+		profiling.write "to_pyro" {
+			endpoint {
+				url = "http://pyroscope.pyroscope.svc.cluster.local:4040"
+			}
+		}
   {{- $profileTypes := list "memory" "cpu" "goroutine" "block" "mutex" "fgprof" }}
   {{- range $profileTypes }}
 
