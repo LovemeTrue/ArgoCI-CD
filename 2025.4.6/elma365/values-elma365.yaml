@@ -56,7 +56,7 @@ elma365:
       metrics:
         enabled: true
         all: true
-      provisioner: "deckhouse"
+      provisioner: "k8s"
       dashboard:
         enabled: true
       alerts:
