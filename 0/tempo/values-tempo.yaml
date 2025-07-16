@@ -40,6 +40,9 @@ tempo:
           store: memberlist
       storage:
         path: /tmp/tempo
+      processor:
+        service_graphs:
+          enabled: true
       
     storage:
       trace:

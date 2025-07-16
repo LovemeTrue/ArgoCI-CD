@@ -72,6 +72,16 @@ kube-prometheus-stack:
       serviceMonitorSelectorNilUsesHelmValues: false
       podMonitorSelectorNilUsesHelmValues: false
       scrapeConfigSelectorNilUsesHelmValues: false
+      # -- настройки для namespace monitoring
+      podMonitorNamespaceSelector:
+      matchNames:
+        - monitoring
+      serviceMonitorNamespaceSelector:
+        matchNames:
+        - monitoring
+      scrapeConfigNamespaceSelector:
+        matchNames:
+        - monitoring
       ## -- Как долго хранить метрики
       retention: 1d
       ## -- Максимальный размер метрик
