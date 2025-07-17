@@ -83,7 +83,7 @@ kube-prometheus-stack:
       #   matchLabels:
       #   - monitoring
       ## -- Как долго хранить метрики
-      retention: 1d
+      retention: 12h
       ## -- Максимальный размер метрик
       retentionSize: ""
   global:
