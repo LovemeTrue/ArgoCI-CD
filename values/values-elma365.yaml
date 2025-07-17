@@ -49,7 +49,7 @@ elma365:
       metrics:
         enabled: true
         all: true
-      provisioner: "deckhouse"
+      provisioner: "k8s"
       dashboard:
         enabled: true
       alerts:
@@ -101,12 +101,12 @@ elma365:
       poolMaxIdleConns: 10
       poolMaxOpenConns: 150
       poolConnMaxLifetime: 5m
-      log_statement : all
-      session_preload_libraries : auto_explain
-      auto_explain.log_analyze : on
-      auto_explain.log_min_duration : 400
-      auto_explain.log_buffers : on
-      auto_explain.log_format : JSON
+      # log_statement : all
+      # session_preload_libraries : auto_explain
+      # auto_explain.log_analyze : on
+      # auto_explain.log_min_duration : 400
+      # auto_explain.log_buffers : on
+      # auto_explain.log_format : JSON
     maxGrpcMessageSize: "8388608"
     maxGrpcBackoffDelay: 2s
     activeDeadlineSeconds: 3000
@@ -158,7 +158,7 @@ elma365:
     vahterMongoUrl: 'mongodb://elma365:mongopassword@mongo.elma365-dbs.svc.cluster.local:27017/elma365?ssl=false&replicaSet=rs0&readPreference=nearest'
 ## mongoUrl и vahterMongoUrl могут быть одинаковыми, коллекции внутри бд не пересекаются
 ## cтрока подключения к Redis, формат: redis://user:password@redis.local:6379/databaseName
-    redisUrl: 'redis://redis.elma365-dbs.svc.cluster.local:6379/0'
+    redisUrl: 'redis://valkey.elma365-dbs.svc.cluster.local:6379/0'
 ## cтрока подключения к Rabbit, формат amqp://user:password@hostname:5672/vhost
     amqpUrl: 'amqp://elma365:rmqpassword@rabbitmq.elma365-dbs.svc.cluster.local:5672/elma365'
 # amqpUrl: 'amqp://elma365user:SecretPassword@91.217.196.139:5672/elma365vhost'
