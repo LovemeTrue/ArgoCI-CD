@@ -112,7 +112,6 @@ elma365:
     activeDeadlineSeconds: 3000
     curlCreateCompanyMaxTime: 1800
     curlMigrationsMaxTime: 3000
-##
 ## включить режим отладки платформы
   debug: true
 ##

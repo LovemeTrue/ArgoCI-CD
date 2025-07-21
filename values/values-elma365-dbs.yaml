@@ -264,7 +264,7 @@ elma365-dbs:
 #          secretName: "elma365-onpremise-tls"
     persistence:
 ## размер хранилища данных (PVC)
-      size: 30Gi
+      size: 10Gi
 ## если не определено, используется StorageClass по умолчанию
 #      storageClass: ""
 ## Включение контейнера инициализации, который изменяет владельца и группу точки монтирования тома на `RunAsUser:fsGroup
