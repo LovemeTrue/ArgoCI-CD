@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/LovemeTrue/ArgoCI-CD.git
     targetRevision: main
-    path: ./apps
+    path: /apps
     directory:
       recurse: true
   destination:
